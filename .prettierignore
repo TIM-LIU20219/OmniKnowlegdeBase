@@ -1,0 +1,16 @@
+node_modules/
+dist/
+build/
+.next/
+out/
+*.min.js
+*.min.css
+coverage/
+.env
+.env.local
+.venv/
+venv/
+backend/venv/
+*.pyc
+__pycache__/
+
