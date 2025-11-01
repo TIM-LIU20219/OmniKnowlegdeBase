@@ -1,41 +1,40 @@
 # FastAPI and web framework
-fastapi==0.104.1
-uvicorn[standard]==0.24.0
-pydantic==2.5.0
-pydantic-settings==2.1.0
+fastapi
+uvicorn[standard]
+pydantic
+pydantic-settings
 
 # Vector Database
-chromadb==0.4.18
+chromadb
 
 # Document processing
-pypdf==3.17.0
-markdown==3.5.1
-beautifulsoup4==4.12.2
-lxml==4.9.3
-requests==2.31.0
+pypdf
+markdown
+beautifulsoup4
+lxml
+requests
 
 # RAG and embeddings
-langchain==0.1.0
-langchain-community==0.0.10
-sentence-transformers==2.2.2
+langchain
+langchain-community
+sentence-transformers
 
-# Vector store
-# chromadb==0.4.18  # Already added above
-# pinecone-client==2.2.4  # Optional: cloud vector store
+# Vector store (optional)
+# pinecone-client  # Optional: cloud vector store
 
 # Utilities
-python-dotenv==1.0.0
-python-multipart==0.0.6
+python-dotenv
+python-multipart
 
 # Frontend (Streamlit)
-streamlit==1.28.0
-streamlit-markdown-editor==0.0.3
-plotly==5.18.0
+streamlit
+plotly
+# Note: Streamlit has built-in markdown support, no need for separate editor
 
 # Development dependencies
-black==23.11.0
-ruff==0.1.6
-pytest==7.4.3
-pytest-asyncio==0.21.1
-pytest-cov==4.1.0
+black
+ruff
+pytest
+pytest-asyncio
+pytest-cov
 
