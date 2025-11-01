@@ -2,6 +2,11 @@
 
 from fastapi import FastAPI
 
+from backend.app.utils.filesystem import ensure_directories
+
+# Initialize directories on startup
+ensure_directories()
+
 app = FastAPI(
     title="OmniKnowledgeBase API",
     description="Multi-functional knowledge base API",

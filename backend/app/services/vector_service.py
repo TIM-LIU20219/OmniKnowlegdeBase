@@ -1,11 +1,9 @@
 """Vector store service for ChromaDB integration."""
 
 import logging
-from pathlib import Path
 from typing import Any, Dict, List, Optional
 
-import chromadb
-from chromadb.config import Settings
+from backend.app.utils.chromadb_config import chromadb_config
 
 logger = logging.getLogger(__name__)
 
@@ -13,23 +11,20 @@ logger = logging.getLogger(__name__)
 class VectorService:
     """Service for managing vector storage with ChromaDB."""
 
-    def __init__(self, persist_directory: str = "chroma_db"):
+    def __init__(self, config=None):
         """
         Initialize ChromaDB client.
 
         Args:
-            persist_directory: Directory to persist ChromaDB data
+            config: Optional ChromaDBConfig instance. If None, uses global config.
         """
-        self.persist_directory = Path(persist_directory)
-        self.persist_directory.mkdir(parents=True, exist_ok=True)
+        self.config = config or chromadb_config
+        self.client = self.config.get_client()
+        self.collection_names = self.config.get_collection_names()
 
-        # Initialize ChromaDB client
-        self.client = chromadb.PersistentClient(
-            path=str(self.persist_directory),
-            settings=Settings(anonymized_telemetry=False),
+        logger.info(
+            f"Initialized ChromaDB client at {self.config.persist_directory}"
         )
-
-        logger.info(f"Initialized ChromaDB client at {self.persist_directory}")
 
     def get_or_create_collection(
         self, name: str, metadata: Optional[Dict[str, Any]] = None
@@ -165,5 +160,41 @@ class VectorService:
             return names
         except Exception as e:
             logger.error(f"Error listing collections: {e}")
+            raise
+
+    def get_documents_collection(self):
+        """
+        Get or create the documents collection.
+
+        Returns:
+            ChromaDB collection for documents
+        """
+        return self.get_or_create_collection(self.collection_names["documents"])
+
+    def get_notes_collection(self):
+        """
+        Get or create the notes collection.
+
+        Returns:
+            ChromaDB collection for notes
+        """
+        return self.get_or_create_collection(self.collection_names["notes"])
+
+    def delete_document(self, collection_name: str, doc_id: str):
+        """
+        Delete a document from a collection.
+
+        Args:
+            collection_name: Name of the collection
+            doc_id: Document ID to delete
+        """
+        try:
+            collection = self.get_or_create_collection(collection_name)
+            collection.delete(ids=[doc_id])
+            logger.info(f"Deleted document '{doc_id}' from '{collection_name}'")
+        except Exception as e:
+            logger.error(
+                f"Error deleting document '{doc_id}' from '{collection_name}': {e}"
+            )
             raise
 

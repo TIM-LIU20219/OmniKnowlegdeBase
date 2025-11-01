@@ -2,7 +2,7 @@
 
 import logging
 from pathlib import Path
-from typing import List
+from typing import List, Optional
 
 logger = logging.getLogger(__name__)
 
@@ -88,4 +88,87 @@ def list_document_files() -> List[Path]:
             documents.extend(list(DOCUMENTS_DIR.rglob(ext)))
     logger.debug(f"Found {len(documents)} document files")
     return documents
+
+
+def get_file_size(file_path: Path) -> int:
+    """
+    Get file size in bytes.
+
+    Args:
+        file_path: Path to file
+
+    Returns:
+        File size in bytes
+    """
+    if not file_path.exists():
+        return 0
+    return file_path.stat().st_size
+
+
+def get_file_info(file_path: Path) -> dict:
+    """
+    Get file information dictionary.
+
+    Args:
+        file_path: Path to file
+
+    Returns:
+        Dictionary with file information
+    """
+    if not file_path.exists():
+        return {}
+
+    stat = file_path.stat()
+    return {
+        "name": file_path.name,
+        "size": stat.st_size,
+        "created": stat.st_ctime,
+        "modified": stat.st_mtime,
+        "is_file": file_path.is_file(),
+        "is_dir": file_path.is_dir(),
+    }
+
+
+def create_subdirectory(base_dir: Path, subdir_name: str) -> Path:
+    """
+    Create a subdirectory if it doesn't exist.
+
+    Args:
+        base_dir: Base directory path
+        subdir_name: Subdirectory name
+
+    Returns:
+        Path to created subdirectory
+    """
+    subdir = base_dir / subdir_name
+    subdir.mkdir(parents=True, exist_ok=True)
+    logger.debug(f"Ensured subdirectory exists: {subdir}")
+    return subdir
+
+
+def sanitize_path(path_str: str) -> str:
+    """
+    Sanitize a path string by removing invalid characters.
+
+    Args:
+        path_str: Path string to sanitize
+
+    Returns:
+        Sanitized path string
+    """
+    # Remove invalid characters for Windows/Unix
+    invalid_chars = r'<>:"/\|?*'
+    sanitized = "".join(c if c not in invalid_chars else "_" for c in path_str)
+    return sanitized.strip()
+
+
+def ensure_file_directory(file_path: Path):
+    """
+    Ensure the parent directory of a file exists.
+
+    Args:
+        file_path: Path to file
+    """
+    file_path.parent.mkdir(parents=True, exist_ok=True)
+    logger.debug(f"Ensured parent directory exists: {file_path.parent}")
 
