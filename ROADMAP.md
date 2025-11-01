@@ -29,7 +29,7 @@ OmniKnowledgeBase 是一个专注于 RAG 的知识库系统，包含以下核心
 
 ## 开发路线（分阶段敏捷开发）
 
-### 🎯 Phase 0: 项目基础搭建（当前阶段）
+### 🎯 Phase 0: 项目基础搭建 ✅
 
 **目标**：建立项目基础设施和开发环境
 
@@ -37,18 +37,20 @@ OmniKnowledgeBase 是一个专注于 RAG 的知识库系统，包含以下核心
 - [x] 项目结构创建
 - [x] 依赖配置（requirements.txt, pyproject.toml）
 - [x] Git 工作流配置
-- [ ] Streamlit 应用初始化
-- [ ] ChromaDB 配置和初始化
-- [ ] 文件系统结构创建（notes/、documents/目录）
-- [ ] 基础配置文件（.env.example）
+- [x] Streamlit 应用初始化
+- [x] ChromaDB 配置和初始化
+- [x] 文件系统结构创建（notes/、documents/目录）
+- [x] 基础配置文件（.env.example）
 - [ ] Docker 配置（可选，用于开发环境）
 
 **预计时间**：1 天
 
 **验收标准**：
-- Streamlit 应用可启动并显示基础页面
-- ChromaDB 可以连接和创建集合
-- 文件系统目录结构正确
+- ✅ Streamlit 应用可启动并显示基础页面
+- ✅ ChromaDB 可以连接和创建集合
+- ✅ 文件系统目录结构正确
+
+**完成状态**：✅ Phase 0 已完成
 
 ---
 

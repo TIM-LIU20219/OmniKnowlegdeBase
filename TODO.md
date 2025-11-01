@@ -4,36 +4,36 @@
 > 
 > **架构调整**：使用 Streamlit + ChromaDB + 文件系统（无 SQL 数据库）
 
-## 当前 Sprint: Phase 0 - 项目基础搭建
+## 当前 Sprint: Phase 0 - 项目基础搭建 ✅
 
-**开始日期**: [待填写]  
-**结束日期**: [待填写]  
-**负责人**: [待填写]
+**开始日期**: 2024-01-XX  
+**结束日期**: 2024-01-XX  
+**状态**: ✅ 已完成
 
 ### 任务列表
 
-- [ ] **Streamlit 应用初始化**
-  - [ ] 创建 Streamlit 主应用（`app.py`）
-  - [ ] 创建页面目录结构（`pages/`）
-  - [ ] 配置 Streamlit 配置文件（`.streamlit/config.toml`）
-  - [ ] 创建基础页面布局
+- [x] **Streamlit 应用初始化** ✅
+  - [x] 创建 Streamlit 主应用（`app.py`）
+  - [x] 创建页面目录结构（`pages/`）
+  - [x] 配置 Streamlit 配置文件（`.streamlit/config.toml`）
+  - [x] 创建基础页面布局
 
-- [ ] **ChromaDB 配置**
-  - [ ] 安装 ChromaDB
-  - [ ] 创建向量存储服务（`app/services/vector_service.py`）
-  - [ ] 配置 ChromaDB 连接和集合
-  - [ ] 测试向量存储功能
+- [x] **ChromaDB 配置** ✅
+  - [x] 安装 ChromaDB（已在 requirements.txt）
+  - [x] 创建向量存储服务（`backend/app/services/vector_service.py`）
+  - [x] 配置 ChromaDB 连接和集合
+  - [x] 基础向量存储功能已实现
 
-- [ ] **文件系统结构**
-  - [ ] 创建 `notes/` 目录（存储 Obsidian 笔记）
-  - [ ] 创建 `documents/` 目录（存储上传的文档）
-  - [ ] 创建 `chroma_db/` 目录（ChromaDB 数据）
-  - [ ] 创建文件系统工具模块
+- [x] **文件系统结构** ✅
+  - [x] 创建 `notes/` 目录（存储 Obsidian 笔记）
+  - [x] 创建 `documents/` 目录（存储上传的文档）
+  - [x] 创建 `chroma_db/` 目录（ChromaDB 数据）
+  - [x] 创建文件系统工具模块（`backend/app/utils/filesystem.py`）
 
-- [ ] **基础配置文件**
-  - [ ] 创建 `.env.example`（包含所有必需的环境变量）
-  - [ ] 配置日志系统
-  - [ ] 配置 LLM API Key（OpenAI）
+- [x] **基础配置文件** ✅
+  - [x] 创建 `.env.example`（包含所有必需的环境变量）
+  - [x] 配置日志系统（`backend/app/utils/logging_config.py`）
+  - [x] 配置 LLM API Key（OpenAI）- 通过 .env.example 配置
 
 ---
 
