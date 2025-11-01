@@ -4,9 +4,8 @@ uvicorn[standard]==0.24.0
 pydantic==2.5.0
 pydantic-settings==2.1.0
 
-# Database
-sqlalchemy==2.0.23
-alembic==1.12.1
+# Vector Database
+chromadb==0.4.18
 
 # Document processing
 pypdf==3.17.0
@@ -20,14 +19,18 @@ langchain==0.1.0
 langchain-community==0.0.10
 sentence-transformers==2.2.2
 
-# Vector store (adjust based on your choice)
-# chromadb==0.4.18
-# or
-# pinecone-client==2.2.4
+# Vector store
+# chromadb==0.4.18  # Already added above
+# pinecone-client==2.2.4  # Optional: cloud vector store
 
 # Utilities
 python-dotenv==1.0.0
 python-multipart==0.0.6
+
+# Frontend (Streamlit)
+streamlit==1.28.0
+streamlit-markdown-editor==0.0.3
+plotly==5.18.0
 
 # Development dependencies
 black==23.11.0
