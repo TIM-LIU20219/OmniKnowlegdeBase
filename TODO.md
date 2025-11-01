@@ -48,14 +48,14 @@
 - [x] 元数据模型定义（Pydantic）
 - [x] 目录结构初始化
 
-### Sprint 1.2: Streamlit 基础框架
+### Sprint 1.2: Streamlit 基础框架 ✅
 
-- [ ] Streamlit 主应用
-- [ ] 页面路由结构
-- [ ] 侧边栏配置和导航
-- [ ] 页面布局组件
-- [ ] 状态管理（st.session_state）
-- [ ] 配置文件管理
+- [x] Streamlit 主应用
+- [x] 页面路由结构
+- [x] 侧边栏配置和导航
+- [x] 页面布局组件
+- [x] 状态管理（st.session_state）
+- [x] 配置文件管理
 
 ---
 

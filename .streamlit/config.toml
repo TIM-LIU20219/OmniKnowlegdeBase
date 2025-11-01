@@ -10,7 +10,20 @@ headless = true
 port = 8501
 enableCORS = false
 enableXsrfProtection = true
+maxUploadSize = 200  # Maximum file upload size in MB
+maxMessageSize = 200  # Maximum message size in MB
 
 [browser]
 gatherUsageStats = false
+
+[ui]
+hideTopBar = false
+hideSidebarNav = false
+hideFooter = false
+
+[runner]
+magicEnabled = true
+fastReruns = true
+installTracer = false
+fixMatplotlib = true
 
