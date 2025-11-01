@@ -34,14 +34,16 @@ class VectorService:
 
         Args:
             name: Collection name
-            metadata: Optional metadata for the collection
+            metadata: Optional metadata for the collection.
+                    Pass None (not empty dict) if no metadata needed.
 
         Returns:
             ChromaDB collection object
         """
         try:
+            # ChromaDB requires None instead of empty dict for no metadata
             collection = self.client.get_or_create_collection(
-                name=name, metadata=metadata or {}
+                name=name, metadata=metadata if metadata else None
             )
             logger.info(f"Collection '{name}' ready")
             return collection

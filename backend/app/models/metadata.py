@@ -61,12 +61,18 @@ class DocumentMetadata(BaseModel):
         Returns:
             Dictionary suitable for ChromaDB metadata
         """
+        # Handle doc_type - it may be Enum or string due to use_enum_values
+        doc_type_value = self.doc_type.value if hasattr(self.doc_type, 'value') else str(self.doc_type)
+        
+        # Handle source - it may be Enum or string due to use_enum_values
+        source_value = self.source.value if hasattr(self.source, 'value') else str(self.source)
+        
         metadata = {
             "doc_id": self.doc_id,
-            "doc_type": self.doc_type.value,
+            "doc_type": doc_type_value,
             "title": self.title,
             "created_at": self.created_at,
-            "source": self.source.value,
+            "source": source_value,
             "chunk_index": self.chunk_index,
         }
 

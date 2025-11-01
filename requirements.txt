@@ -19,6 +19,12 @@ pyyaml
 langchain
 langchain-community
 sentence-transformers
+# CPU-only PyTorch (required by sentence-transformers)
+# NOTE: Install CPU version manually:
+#   Windows/Linux: pip install torch torchvision torchaudio --index-url https://download.pytorch.org/whl/cpu
+#   macOS: pip install torch torchvision torchaudio
+# PyTorch will be installed automatically by sentence-transformers, but for CPU-only builds,
+# it's recommended to install it manually first as shown above
 
 # Vector store (optional)
 # pinecone-client  # Optional: cloud vector store
