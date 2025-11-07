@@ -318,31 +318,44 @@ class DocumentProcessor:
     def _extract_tags(self, content: str) -> List[str]:
         """
         Extract tags from content.
+        
+        All tags are normalized to Obsidian style with # prefix.
 
         Args:
             content: Document content
 
         Returns:
-            List of tags
+            List of tags with # prefix (Obsidian style)
         """
         tags = []
 
-        # Extract markdown tags: #tag or tags: [tag1, tag2]
-        tag_pattern = r"#(\w+)"
+        # Extract markdown tags: #tag - keep the # prefix
+        # Support Unicode characters (including Chinese, Japanese, Korean, etc.)
+        tag_pattern = r"#([^\s#]+)"
         found_tags = re.findall(tag_pattern, content)
-        tags.extend(found_tags)
+        tags.extend([f"#{tag}" for tag in found_tags])
 
-        # Extract frontmatter tags
+        # Extract frontmatter tags and add # prefix
         frontmatter, _ = self._extract_frontmatter(content)
         if "tags" in frontmatter:
             frontmatter_tags = frontmatter["tags"]
             if isinstance(frontmatter_tags, list):
-                tags.extend(frontmatter_tags)
+                # Add # prefix if not present
+                tags.extend([f"#{tag}" if not tag.startswith("#") else tag for tag in frontmatter_tags])
             elif isinstance(frontmatter_tags, str):
-                tags.extend([t.strip() for t in frontmatter_tags.split(",")])
+                # Handle comma-separated tags
+                tag_list = [t.strip() for t in frontmatter_tags.split(",")]
+                tags.extend([f"#{tag}" if not tag.startswith("#") else tag for tag in tag_list])
 
-        # Remove duplicates and return
-        return list(set(tags))
+        # Remove duplicates while preserving order
+        seen = set()
+        unique_tags = []
+        for tag in tags:
+            if tag not in seen:
+                seen.add(tag)
+                unique_tags.append(tag)
+        
+        return unique_tags
 
     def _extract_links(self, content: str) -> List[str]:
         """

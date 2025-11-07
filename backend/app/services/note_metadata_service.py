@@ -68,6 +68,14 @@ class NoteMetadataService:
             """
             )
             
+            # Migrate existing note_links table if link_name column is missing
+            try:
+                cursor.execute("SELECT link_name FROM note_links LIMIT 1")
+            except sqlite3.OperationalError:
+                # Column doesn't exist, add it
+                logger.info("Adding link_name column to note_links table")
+                cursor.execute("ALTER TABLE note_links ADD COLUMN link_name TEXT")
+            
             # Unresolved links table (for links to notes that don't exist yet)
             cursor.execute(
                 """

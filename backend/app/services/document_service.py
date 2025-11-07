@@ -97,6 +97,7 @@ class DocumentService:
 
         Strategy:
         - If file is in resources folder, keep reference only
+        - If file is in notes folder, keep reference only (notes are managed separately)
         - If file is uploaded (temp location), copy to documents
 
         Args:
@@ -109,6 +110,7 @@ class DocumentService:
             # Resolve paths to absolute
             file_path_resolved = file_path.resolve()
             resources_dir = BASE_DIR / "resources"
+            notes_dir = NOTES_DIR.resolve()
 
             # Check if file is in resources folder
             try:
@@ -117,9 +119,20 @@ class DocumentService:
                 logger.debug(f"File is in resources folder, keeping reference: {file_path}")
                 return False
             except ValueError:
-                # File is not in resources, copy it
-                logger.debug(f"File is not in resources folder, will copy: {file_path}")
-                return True
+                pass
+
+            # Check if file is in notes folder
+            try:
+                file_path_resolved.relative_to(notes_dir)
+                # File is in notes, don't copy
+                logger.debug(f"File is in notes folder, keeping reference: {file_path}")
+                return False
+            except ValueError:
+                pass
+
+            # File is not in resources or notes, copy it
+            logger.debug(f"File is not in resources/notes folder, will copy: {file_path}")
+            return True
         except Exception as e:
             logger.warning(f"Error determining copy strategy: {e}, defaulting to copy")
             return True
@@ -187,6 +200,11 @@ class DocumentService:
                             metadata.storage_path = str(file_path_obj)
 
             metadata.import_batch = import_batch
+
+            # Check if this is a note and update metadata accordingly
+            if file_path and self._is_note_path(file_path):
+                metadata.doc_type = DocType.NOTE
+                metadata.source = SourceType.NOTE
 
             # Process and store (pass original content for note processing)
             return self._process_and_store(text, metadata, original_content=content)
@@ -419,12 +437,38 @@ class DocumentService:
             frontmatter, _ = self.processor._extract_frontmatter(original_content)
 
             # Extract tags (from frontmatter and markdown)
-            tags = metadata.tags.copy()
-            # Also extract markdown tags (#tag)
-            tag_pattern = r"#(\w+)"
+            # Normalize all tags to Obsidian style with # prefix
+            tags = []
+            
+            # Extract markdown tags (#tag) - keep the # prefix
+            # Support Unicode characters (including Chinese, Japanese, Korean, etc.)
+            tag_pattern = r"#([^\s#]+)"
             markdown_tags = re.findall(tag_pattern, original_content)
-            tags.extend(markdown_tags)
-            tags = list(set(tags))  # Remove duplicates
+            tags.extend([f"#{tag}" for tag in markdown_tags])
+            
+            # Extract frontmatter tags and add # prefix if not present
+            if "tags" in frontmatter:
+                frontmatter_tags = frontmatter["tags"]
+                if isinstance(frontmatter_tags, list):
+                    tags.extend([f"#{tag}" if not tag.startswith("#") else tag for tag in frontmatter_tags])
+                elif isinstance(frontmatter_tags, str):
+                    tag_list = [t.strip() for t in frontmatter_tags.split(",")]
+                    tags.extend([f"#{tag}" if not tag.startswith("#") else tag for tag in tag_list])
+            
+            # Also include tags from metadata (already processed by DocumentProcessor)
+            for tag in metadata.tags:
+                normalized_tag = f"#{tag}" if not tag.startswith("#") else tag
+                if normalized_tag not in tags:
+                    tags.append(normalized_tag)
+            
+            # Remove duplicates while preserving order
+            seen = set()
+            unique_tags = []
+            for tag in tags:
+                if tag not in seen:
+                    seen.add(tag)
+                    unique_tags.append(tag)
+            tags = unique_tags
 
             # Extract Obsidian-style links [[note-name]]
             links = self._extract_obsidian_links(original_content)

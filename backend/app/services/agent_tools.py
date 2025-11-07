@@ -159,15 +159,20 @@ class AgentTools:
     def get_notes_by_tag(self, tag: str) -> List[Dict[str, Any]]:
         """
         Get all notes with a specific tag.
+        
+        Normalizes tag to Obsidian style with # prefix if not present.
 
         Args:
-            tag: Tag name
+            tag: Tag name (with or without # prefix)
 
         Returns:
             List of note metadata dictionaries
         """
         try:
-            notes = self.note_metadata_service.get_notes_by_tag(tag)
+            # Normalize tag to Obsidian style (#tag)
+            normalized_tag = tag if tag.startswith("#") else f"#{tag}"
+            
+            notes = self.note_metadata_service.get_notes_by_tag(normalized_tag)
             return [
                 {
                     "note_id": note.note_id,

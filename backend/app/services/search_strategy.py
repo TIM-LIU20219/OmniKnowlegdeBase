@@ -175,12 +175,16 @@ class TagFilterStrategy(SearchStrategy):
         tags = []
         if context and "tags" in context:
             tags = context["tags"]
+            # Normalize tags to Obsidian style (#tag)
+            tags = [tag if tag.startswith("#") else f"#{tag}" for tag in tags]
         else:
             # Try to extract tags from query (simple heuristic)
             # Look for #tag patterns
+            # Support Unicode characters (including Chinese, Japanese, Korean, etc.)
             import re
-            tag_pattern = r"#(\w+)"
-            tags = re.findall(tag_pattern, query)
+            tag_pattern = r"#([^\s#]+)"
+            found_tags = re.findall(tag_pattern, query)
+            tags = [f"#{tag}" for tag in found_tags]
 
         if not tags:
             logger.debug("No tags found in query or context")

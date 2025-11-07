@@ -169,18 +169,22 @@
   - [x] 支持工具调用结果的展示（--verbose选项）
   - [x] 支持检索策略选择 (`--strategy note-first|hybrid`)
 
-### Sprint 2.5.5: 笔记向量化流程
+### Sprint 2.5.5: 笔记向量化流程 ✅
 
-- [ ] **笔记专用向量化服务**
-  - [ ] 修改笔记处理流程，分离结构化信息和文本内容
-  - [ ] 实现笔记批量向量化 (`cli note vectorize --all`)
-  - [ ] 实现笔记增量向量化（仅向量化新笔记）
-  - [ ] 确保结构化信息存储到SQLite，文本内容存储到ChromaDB
+- [x] **笔记专用向量化服务** ✅
+  - [x] 创建 `backend/app/services/note_vectorization_service.py`
+  - [x] 实现笔记向量化检查 (`is_note_vectorized`)
+  - [x] 实现单笔记向量化 (`vectorize_note`)
+  - [x] 实现笔记批量向量化 (`vectorize_all_notes`)
+  - [x] 实现笔记增量向量化（仅向量化新笔记，通过`incremental`参数控制）
+  - [x] 确保结构化信息存储到SQLite，文本内容存储到ChromaDB（通过DocumentService实现）
+  - [x] 修改DocumentService的`_should_copy_file`方法，确保notes文件夹中的文件不被复制
 
-- [ ] **笔记检索CLI**
-  - [ ] 实现笔记语义搜索 (`cli note search <query>`)
-  - [ ] 实现按标签查询 (`cli note search --tag <tag>`)
-  - [ ] 实现链接关系查询 (`cli note links --from <note_id>`)
+- [x] **笔记检索CLI** ✅
+  - [x] 实现笔记语义搜索 (`cli note search <query>`)
+  - [x] 实现按标签查询 (`cli note search --tag <tag>`)
+  - [x] 实现链接关系查询 (`cli note links --from <note_id>`)
+  - [x] 更新`cli note vectorize`命令，支持`--all`、`--force`、`--incremental`选项
 
 ---
 
@@ -459,11 +463,12 @@
 
 ### Milestone 2: Agentic Search与笔记检索体系（Phase 2.5 完成）
 
-- [ ] 结构化信息存储（SQLite）完成
-- [ ] 文本内容与结构化信息分离
-- [ ] Agentic Search框架实现
-- [ ] LLM工具调用集成完成
-- [ ] 笔记优先检索策略可用
+- [x] 结构化信息存储（SQLite）完成
+- [x] 文本内容与结构化信息分离
+- [x] Agentic Search框架实现
+- [x] LLM工具调用集成完成
+- [x] 笔记优先检索策略可用
+- [x] 笔记向量化流程完成（Sprint 2.5.5）
 
 ### Milestone 3: RAG 效果优化（Phase 3 完成，优先级降低）
 

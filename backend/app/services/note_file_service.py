@@ -233,8 +233,26 @@ class NoteFileService:
         else:
             updated_at = datetime.now()
 
-        # Get tags
-        tags = frontmatter.get("tags", [])
+        # Get tags and normalize to Obsidian style with # prefix
+        frontmatter_tags = frontmatter.get("tags", [])
+        tags = []
+        
+        if isinstance(frontmatter_tags, list):
+            tags = [f"#{tag}" if not tag.startswith("#") else tag for tag in frontmatter_tags]
+        elif isinstance(frontmatter_tags, str):
+            tag_list = [t.strip() for t in frontmatter_tags.split(",")]
+            tags = [f"#{tag}" if not tag.startswith("#") else tag for tag in tag_list]
+        elif frontmatter_tags:
+            tags = [f"#{frontmatter_tags}" if not str(frontmatter_tags).startswith("#") else str(frontmatter_tags)]
+        
+        # Also extract markdown tags (#tag) from content
+        # Support Unicode characters (including Chinese, Japanese, Korean, etc.)
+        tag_pattern = r"#([^\s#]+)"
+        markdown_tags = re.findall(tag_pattern, content)
+        for tag in markdown_tags:
+            normalized_tag = f"#{tag}"
+            if normalized_tag not in tags:
+                tags.append(normalized_tag)
 
         # Generate note ID from file path
         note_id = str(file_path).replace("\\", "/").replace(".md", "")
@@ -245,7 +263,7 @@ class NoteFileService:
             file_path=str(file_path),
             created_at=created_at,
             updated_at=updated_at,
-            tags=tags if isinstance(tags, list) else [tags] if tags else [],
+            tags=tags,
             links=links,
             frontmatter=frontmatter,
         )
