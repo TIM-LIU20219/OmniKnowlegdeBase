@@ -1,0 +1,46 @@
+{
+  "dataset_name": "textbook_benchmark",
+  "description": "Benchmark dataset for PDF textbook evaluation",
+  "questions": [
+    {
+      "question_id": "textbook_001",
+      "question": "What is the main topic introduced in Chapter 1?",
+      "ground_truth_answer": "Chapter 1 introduces the fundamental concepts of [topic]. It covers [key points].",
+      "context_doc_ids": ["REPLACE_WITH_YOUR_DOC_ID"],
+      "metadata": {
+        "category": "factual",
+        "difficulty": "easy",
+        "chapter": "1"
+      }
+    },
+    {
+      "question_id": "textbook_002",
+      "question": "Explain the relationship between concept A and concept B.",
+      "ground_truth_answer": "Concept A and concept B are related because [explanation]. The key connection is [details].",
+      "context_doc_ids": ["REPLACE_WITH_YOUR_DOC_ID"],
+      "metadata": {
+        "category": "reasoning",
+        "difficulty": "medium",
+        "chapter": "1"
+      }
+    },
+    {
+      "question_id": "textbook_003",
+      "question": "Summarize the main points discussed in Chapter 2.",
+      "ground_truth_answer": "Chapter 2 discusses [point 1], [point 2], and [point 3]. The key takeaway is [summary].",
+      "context_doc_ids": ["REPLACE_WITH_YOUR_DOC_ID"],
+      "metadata": {
+        "category": "summarization",
+        "difficulty": "medium",
+        "chapter": "2"
+      }
+    }
+  ],
+  "metadata": {
+    "version": "1.0",
+    "created_date": "2024-01-XX",
+    "textbook_pages": 31,
+    "total_questions": 3
+  }
+}
+

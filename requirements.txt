@@ -18,6 +18,7 @@ pyyaml
 # RAG and embeddings
 langchain
 langchain-community
+langchain-openai
 sentence-transformers
 # CPU-only PyTorch (required by sentence-transformers)
 # NOTE: Install CPU version manually:
