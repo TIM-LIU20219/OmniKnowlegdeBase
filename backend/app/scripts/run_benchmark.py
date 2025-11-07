@@ -59,6 +59,11 @@ def main():
         default="benchmark_results.json",
         help="Output file path for results (default: benchmark_results.json)",
     )
+    parser.add_argument(
+        "--retrieval-only",
+        action="store_true",
+        help="Only evaluate retrieval, skip LLM generation",
+    )
 
     args = parser.parse_args()
 
@@ -92,7 +97,11 @@ def main():
     )
 
     # Create evaluator
-    evaluator = RAGBenchmarkEvaluator(rag_service=rag_service, dataset=dataset)
+    evaluator = RAGBenchmarkEvaluator(
+        rag_service=rag_service,
+        dataset=dataset,
+        retrieval_only=args.retrieval_only,
+    )
 
     # Run evaluation
     logger.info("Running evaluation...")
@@ -113,10 +122,22 @@ def main():
     print(f"  Precision: {retrieval['mean_precision']:.3f}")
     print(f"  Recall: {retrieval['mean_recall']:.3f}")
     print(f"  F1: {retrieval['mean_f1']:.3f}")
-    print("\nAnswer Metrics:")
-    answer = results["summary"]["answer_metrics"]
-    print(f"  Similarity: {answer['mean_similarity']:.3f}")
-    print(f"  Mean Length: {answer['mean_answer_length']:.1f}")
+    
+    if "mean_reciprocal_rank" in retrieval:
+        print(f"  MRR: {retrieval['mean_reciprocal_rank']:.3f}")
+    if "mean_similarity_score" in retrieval:
+        print(f"  Mean Similarity Score: {retrieval['mean_similarity_score']:.3f}")
+    if "top_k_accuracy" in retrieval:
+        print("\n  Top-K Accuracy:")
+        for k, acc in retrieval["top_k_accuracy"].items():
+            print(f"    {k}: {acc:.3f}")
+    
+    if not args.retrieval_only and "answer_metrics" in results["summary"]:
+        print("\nAnswer Metrics:")
+        answer = results["summary"]["answer_metrics"]
+        print(f"  Similarity: {answer['mean_similarity']:.3f}")
+        print(f"  Mean Length: {answer['mean_answer_length']:.1f}")
+    
     print("\nContext Metrics:")
     context = results["summary"]["context_metrics"]
     print(f"  Mean Context Length: {context['mean_context_length']:.1f}")
