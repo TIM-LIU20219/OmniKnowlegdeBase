@@ -22,7 +22,7 @@
 
 ### ⚠️ 缺失的功能
 
-- ❌ **统一 CLI 工具**：缺少统一的命令行接口
+- ✅ **统一 CLI 工具**：已完成 Phase 1
 - ❌ **RAG 优化**：混合检索、查询扩展、重排序等
 - ❌ **多模态输入**：Crawl4AI 集成、增强网页读取
 - ❌ **笔记向量化**：笔记专用向量化流程
@@ -34,50 +34,50 @@
 
 > **目标**：为所有后端功能提供统一的命令行接口，确保可以通过 CLI 完成所有操作
 
-### Sprint 1.1: CLI 框架搭建
+### Sprint 1.1: CLI 框架搭建 ✅
 
-- [ ] 选择 CLI 框架（推荐 `click`）
-- [ ] 创建统一 CLI 入口 (`backend/app/cli/__main__.py`)
-- [ ] 设计 CLI 命令结构
-- [ ] 实现基础 CLI 工具（帮助、版本等）
+- [x] 选择 CLI 框架（推荐 `click`）
+- [x] 创建统一 CLI 入口 (`backend/app/cli/__main__.py`)
+- [x] 设计 CLI 命令结构
+- [x] 实现基础 CLI 工具（帮助、版本等）
 
-### Sprint 1.2: 文档管理 CLI
+### Sprint 1.2: 文档管理 CLI ✅
 
-- [ ] 文档上传命令
-  - [ ] `cli document add --pdf <file>`
-  - [ ] `cli document add --markdown <file>`
-  - [ ] `cli document add --url <url>`
-- [ ] 文档列表命令 (`cli document list`)
-- [ ] 文档详情命令 (`cli document show <doc_id>`)
-- [ ] 文档删除命令 (`cli document delete <doc_id>`)
-- [ ] 文档搜索命令 (`cli document search <query>`)
-- [ ] 文档块查看命令 (`cli document chunks <doc_id>`)
+- [x] 文档上传命令
+  - [x] `cli document add --pdf <file>`
+  - [x] `cli document add --markdown <file>`
+  - [x] `cli document add --url <url>`
+- [x] 文档列表命令 (`cli document list`)
+- [x] 文档详情命令 (`cli document show <doc_id>`)
+- [x] 文档删除命令 (`cli document delete <doc_id>`)
+- [x] 文档搜索命令 (`cli document search <query>`)
+- [x] 文档块查看命令 (`cli document chunks <doc_id>`)
 
-### Sprint 1.3: RAG Q&A CLI
+### Sprint 1.3: RAG Q&A CLI ✅
 
-- [ ] 单次查询命令 (`cli rag query <question>`)
-- [ ] 交互式 Q&A 模式 (`cli rag interactive`)
-- [ ] 流式响应支持 (`cli rag query --stream`)
-- [ ] 查询历史记录 (`cli rag history`)
-- [ ] 查询配置选项 (`--collection`, `--k`, `--threshold`)
+- [x] 单次查询命令 (`cli rag query <question>`)
+- [x] 交互式 Q&A 模式 (`cli rag interactive`)
+- [x] 流式响应支持 (`cli rag query --stream`)
+- [x] 查询历史记录 (`cli rag history`) - 占位符（待实现）
+- [x] 查询配置选项 (`--collection`, `--k`, `--threshold`)
 
-### Sprint 1.4: 笔记管理 CLI
+### Sprint 1.4: 笔记管理 CLI ✅
 
-- [ ] 笔记创建命令 (`cli note create --title <title> --content <content>`)
-- [ ] 笔记列表命令 (`cli note list`)
-- [ ] 笔记读取命令 (`cli note show <file_path>`)
-- [ ] 笔记更新命令 (`cli note update <file_path>`)
-- [ ] 笔记删除命令 (`cli note delete <file_path>`)
-- [ ] 笔记链接提取 (`cli note links <file_path>`)
-- [ ] 笔记向量化命令 (`cli note vectorize <file_path>`)
+- [x] 笔记创建命令 (`cli note create --title <title> --content <content>`)
+- [x] 笔记列表命令 (`cli note list`)
+- [x] 笔记读取命令 (`cli note show <file_path>`)
+- [x] 笔记更新命令 (`cli note update <file_path>`)
+- [x] 笔记删除命令 (`cli note delete <file_path>`)
+- [x] 笔记链接提取 (`cli note links <file_path>`)
+- [x] 笔记向量化命令 (`cli note vectorize <file_path>`) - 占位符（待实现）
 
-### Sprint 1.5: 向量存储管理 CLI
+### Sprint 1.5: 向量存储管理 CLI ✅
 
-- [ ] 集合列表 (`cli vector collections`)
-- [ ] 集合统计 (`cli vector stats <collection>`)
-- [ ] 集合删除 (`cli vector delete-collection <collection>`)
-- [ ] 文档删除 (`cli vector delete-document <collection> <doc_id>`)
-- [ ] 向量查询 (`cli vector query <collection> <query>`)
+- [x] 集合列表 (`cli vector collections`)
+- [x] 集合统计 (`cli vector stats <collection>`)
+- [x] 集合删除 (`cli vector delete-collection <collection>`)
+- [x] 文档删除 (`cli vector delete-document <collection> <doc_id>`)
+- [x] 向量查询 (`cli vector query <collection> <query>`)
 
 ---
 
@@ -295,11 +295,11 @@
 
 ## 🎯 里程碑追踪
 
-### Milestone 1: CLI 工具完备（Phase 1 完成）
+### Milestone 1: CLI 工具完备（Phase 1 完成）✅
 
-- [ ] 所有核心功能都有 CLI 接口
-- [ ] 可以通过 CLI 完成所有操作
-- [ ] CLI 文档完善
+- [x] 所有核心功能都有 CLI 接口
+- [x] 可以通过 CLI 完成所有操作
+- [ ] CLI 文档完善（待补充使用说明）
 
 ### Milestone 2: RAG 效果优化（Phase 2 完成）
 
