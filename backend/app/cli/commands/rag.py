@@ -138,3 +138,93 @@ def history_rag(json_output):
     click.echo("Query history feature not yet implemented.")
     click.echo("This will store and display previous RAG queries.")
 
+
+@rag_group.command(name="agentic-query")
+@click.argument("question", type=str)
+@click.option("--max-iterations", default=5, help="Maximum number of tool calling iterations")
+@click.option("--json", "json_output", is_flag=True, help="Output as JSON")
+@click.option("--verbose", is_flag=True, help="Show detailed tool calls")
+def agentic_query(question, max_iterations, json_output, verbose):
+    """Query using Agentic Search with LLM tool calling."""
+    from backend.app.services.agent_executor import AgentExecutor
+    from backend.app.services.agentic_search_service import AgenticSearchService
+    from backend.app.services.agent_tools import AgentTools
+    from backend.app.services.embedding_service import EmbeddingService
+    from backend.app.services.llm_service import LLMService
+    from backend.app.services.note_file_service import NoteFileService
+    from backend.app.services.note_metadata_service import NoteMetadataService
+    from backend.app.services.vector_service import VectorService
+
+    try:
+        click.echo("Initializing Agentic Search...")
+        
+        # Initialize services
+        vector_service = VectorService()
+        embedding_service = EmbeddingService()
+        llm_service = LLMService()
+        note_metadata_service = NoteMetadataService()
+        note_file_service = NoteFileService()
+        
+        # Initialize tools
+        tools = AgentTools(
+            note_metadata_service=note_metadata_service,
+            note_file_service=note_file_service,
+            vector_service=vector_service,
+            embedding_service=embedding_service,
+            collection_name="documents",
+        )
+        
+        # Initialize agentic search service
+        agentic_search_service = AgenticSearchService(tools=tools)
+        
+        # Initialize agent executor
+        executor = AgentExecutor(
+            llm_service=llm_service,
+            agentic_search_service=agentic_search_service,
+            max_iterations=max_iterations,
+        )
+        
+        click.echo(f"Querying: {question}\n")
+        
+        # Execute query
+        result = executor.execute(question)
+        
+        if json_output:
+            # Convert messages to serializable format
+            serializable_result = {
+                "answer": result["answer"],
+                "iterations": result["iterations"],
+                "tool_calls": result["tool_calls"],
+                "max_iterations_reached": result.get("max_iterations_reached", False),
+            }
+            click.echo(json.dumps(serializable_result, indent=2, ensure_ascii=False))
+        else:
+            if verbose and result["tool_calls"]:
+                click.echo("Tool Calls:")
+                for i, tool_call in enumerate(result["tool_calls"], 1):
+                    click.echo(f"\n  [{i}] Iteration {tool_call['iteration']}")
+                    click.echo(f"      Tool: {tool_call['tool_name']}")
+                    click.echo(f"      Args: {json.dumps(tool_call['tool_args'], indent=8, ensure_ascii=False)}")
+                    if isinstance(tool_call.get('result'), dict) and len(str(tool_call['result'])) < 200:
+                        click.echo(f"      Result: {json.dumps(tool_call['result'], indent=8, ensure_ascii=False)}")
+                    else:
+                        result_preview = str(tool_call.get('result', ''))[:100]
+                        click.echo(f"      Result: {result_preview}...")
+                click.echo()
+            
+            click.echo("Answer:")
+            click.echo(result["answer"])
+            click.echo(f"\nCompleted in {result['iterations']} iteration(s)")
+            
+            if result.get("max_iterations_reached"):
+                click.echo("⚠️  Maximum iterations reached", err=True)
+            
+            if result["tool_calls"]:
+                click.echo(f"Used {len(result['tool_calls'])} tool call(s)")
+
+    except Exception as e:
+        click.echo(f"Error: {e}", err=True)
+        import traceback
+        if verbose:
+            click.echo(traceback.format_exc(), err=True)
+        raise click.Abort()

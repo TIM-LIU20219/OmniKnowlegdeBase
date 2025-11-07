@@ -1,8 +1,10 @@
 """LLM service for text generation using LangChain."""
 
+import json
 import logging
-from typing import AsyncIterator, Iterator, Optional
+from typing import Any, AsyncIterator, Dict, Iterator, List, Optional
 
+from langchain_core.messages import AIMessage, BaseMessage, HumanMessage, ToolMessage
 from langchain_openai import ChatOpenAI
 
 from backend.app.utils.llm_config import LLMConfig, llm_config
@@ -150,4 +152,116 @@ class LLMService:
         except Exception as e:
             logger.error(f"Error streaming text asynchronously: {e}")
             raise
+
+    def invoke_with_tools(
+        self,
+        messages: List[BaseMessage],
+        tools: List[Dict[str, Any]],
+        **kwargs,
+    ) -> BaseMessage:
+        """
+        Invoke LLM with function calling tools.
+
+        Args:
+            messages: List of message objects (HumanMessage, AIMessage, ToolMessage)
+            tools: List of tool definitions in OpenAI format
+            **kwargs: Additional arguments for LLM invocation
+
+        Returns:
+            AIMessage with potential tool calls
+        """
+        try:
+            # Bind tools to LLM
+            llm_with_tools = self.llm.bind_tools(tools)
+            
+            # Invoke with messages
+            response = llm_with_tools.invoke(messages, **kwargs)
+            
+            return response
+        except Exception as e:
+            logger.error(f"Error invoking LLM with tools: {e}")
+            raise
+
+    async def ainvoke_with_tools(
+        self,
+        messages: List[BaseMessage],
+        tools: List[Dict[str, Any]],
+        **kwargs,
+    ) -> BaseMessage:
+        """
+        Invoke LLM with function calling tools asynchronously.
+
+        Args:
+            messages: List of message objects
+            tools: List of tool definitions in OpenAI format
+            **kwargs: Additional arguments for LLM invocation
+
+        Returns:
+            AIMessage with potential tool calls
+        """
+        try:
+            # Bind tools to LLM
+            llm_with_tools = self.llm.bind_tools(tools)
+            
+            # Invoke with messages
+            response = await llm_with_tools.ainvoke(messages, **kwargs)
+            
+            return response
+        except Exception as e:
+            logger.error(f"Error invoking LLM with tools asynchronously: {e}")
+            raise
+
+    def has_tool_calls(self, message: BaseMessage) -> bool:
+        """
+        Check if a message contains tool calls.
+
+        Args:
+            message: Message to check
+
+        Returns:
+            True if message has tool calls
+        """
+        if isinstance(message, AIMessage):
+            return hasattr(message, "tool_calls") and len(message.tool_calls) > 0
+        return False
+
+    def get_tool_calls(self, message: BaseMessage) -> List[Dict[str, Any]]:
+        """
+        Extract tool calls from a message.
+
+        Args:
+            message: Message containing tool calls
+
+        Returns:
+            List of tool call dictionaries
+        """
+        if isinstance(message, AIMessage) and hasattr(message, "tool_calls"):
+            return message.tool_calls or []
+        return []
+
+    def create_tool_message(
+        self, tool_call_id: str, tool_name: str, result: Any
+    ) -> ToolMessage:
+        """
+        Create a ToolMessage from tool execution result.
+
+        Args:
+            tool_call_id: ID of the tool call
+            tool_name: Name of the tool that was called
+            result: Tool execution result
+
+        Returns:
+            ToolMessage instance
+        """
+        # Convert result to string if needed
+        if isinstance(result, (dict, list)):
+            content = json.dumps(result, ensure_ascii=False, indent=2)
+        else:
+            content = str(result)
+
+        return ToolMessage(
+            content=content,
+            tool_call_id=tool_call_id,
+            name=tool_name,
+        )
 

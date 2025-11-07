@@ -114,46 +114,47 @@
   - [x] 保留标题层级（`#`）作为文本内容的一部分
   - [x] 移除Obsidian链接但保留链接文本：`[[note-name]]` → `note-name`
 
-### Sprint 2.5.2: Agentic Search框架
+### Sprint 2.5.2: Agentic Search框架 ✅
 
-- [ ] **创建工具定义**
-  - [ ] 创建 `backend/app/services/agent_tools.py`
-  - [ ] 定义工具列表：
-    - [ ] `search_notes_by_title(query: str, limit: int) -> List[NoteMetadata]`：通过标题embedding搜索笔记
-    - [ ] `get_note_metadata(note_id: str) -> NoteMetadata`：获取笔记的tags和links
-    - [ ] `get_notes_by_tag(tag: str) -> List[NoteMetadata]`：按标签查询笔记
-    - [ ] `get_linked_notes(note_id: str) -> List[NoteMetadata]`：获取链接的笔记
-    - [ ] `read_note_content(note_id: str) -> str`：读取笔记完整内容
-    - [ ] `search_pdf_chunks(query: str, limit: int) -> List[Document]`：搜索PDF文档块
-    - [ ] `search_web(query: str) -> str`：网络搜索（可选，需要API）
-  - [ ] 工具转换为OpenAI function calling格式
+- [x] **创建工具定义** ✅
+  - [x] 创建 `backend/app/services/agent_tools.py`
+  - [x] 定义工具列表：
+    - [x] `search_notes_by_title(query: str, limit: int) -> List[Dict]`：通过标题embedding搜索笔记
+    - [x] `get_note_metadata(note_id: str) -> Dict`：获取笔记的tags和links
+    - [x] `get_notes_by_tag(tag: str) -> List[Dict]`：按标签查询笔记
+    - [x] `get_linked_notes(note_id: str) -> List[Dict]`：获取链接的笔记
+    - [x] `get_backlinks(note_id: str) -> List[Dict]`：获取反向链接
+    - [x] `read_note_content(note_id: str) -> str`：读取笔记完整内容
+    - [x] `search_pdf_chunks(query: str, limit: int) -> List[Dict]`：搜索PDF文档块
+  - [x] 工具转换为OpenAI function calling格式
 
-- [ ] **创建Agentic Search服务**
-  - [ ] 创建 `backend/app/services/agentic_search_service.py`
-  - [ ] 使用LangChain的Agent框架或自定义ReAct模式
-  - [ ] LLM可以调用工具进行多步骤检索
-  - [ ] 实现检索策略决策逻辑
+- [x] **创建Agentic Search服务** ✅
+  - [x] 创建 `backend/app/services/agentic_search_service.py`
+  - [x] 使用自定义ReAct模式（通过AgentExecutor实现）
+  - [x] LLM可以调用工具进行多步骤检索
+  - [x] 实现检索策略决策逻辑
 
-- [ ] **实现检索策略**
-  - [ ] 创建 `backend/app/services/search_strategy.py`
-  - [ ] **笔记优先策略**：先搜索笔记标题，找到相关笔记后读取tags/links
-  - [ ] **链接扩展策略**：根据links读取相关笔记
-  - [ ] **标签过滤策略**：如果用户提到特定tag，使用标签查询
-  - [ ] **回退策略**：如果笔记中找不到，搜索PDF或网络
+- [x] **实现检索策略** ✅
+  - [x] 创建 `backend/app/services/search_strategy.py`
+  - [x] **笔记优先策略**：先搜索笔记标题，找到相关笔记后读取tags/links
+  - [x] **链接扩展策略**：根据links读取相关笔记
+  - [x] **标签过滤策略**：如果用户提到特定tag，使用标签查询
+  - [x] **回退策略**：如果笔记中找不到，搜索PDF文档块
+  - [x] **混合策略**：组合多种策略的综合检索
 
-### Sprint 2.5.3: LLM工具调用集成
+### Sprint 2.5.3: LLM工具调用集成 ✅
 
-- [ ] **扩展LLMService支持Function Calling**
-  - [ ] 修改 `backend/app/services/llm_service.py`
-  - [ ] 支持OpenAI格式的function calling
-  - [ ] 工具定义转换为function schema
-  - [ ] 解析LLM的工具调用请求
+- [x] **扩展LLMService支持Function Calling** ✅
+  - [x] 修改 `backend/app/services/llm_service.py`
+  - [x] 支持OpenAI格式的function calling（通过LangChain的bind_tools）
+  - [x] 工具定义转换为function schema（在agent_tools.py中实现）
+  - [x] 解析LLM的工具调用请求（has_tool_calls, get_tool_calls方法）
 
-- [ ] **创建Agent执行器**
-  - [ ] 创建 `backend/app/services/agent_executor.py`
-  - [ ] 执行LLM的工具调用
-  - [ ] 管理多轮对话和工具调用循环
-  - [ ] 限制最大工具调用次数（防止无限循环）
+- [x] **创建Agent执行器** ✅
+  - [x] 创建 `backend/app/services/agent_executor.py`
+  - [x] 执行LLM的工具调用
+  - [x] 管理多轮对话和工具调用循环
+  - [x] 限制最大工具调用次数（防止无限循环，默认max_iterations=5）
 
 ### Sprint 2.5.4: 集成到RAG服务
 
