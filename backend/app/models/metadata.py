@@ -46,6 +46,24 @@ class DocumentMetadata(BaseModel):
     )
     author: Optional[str] = Field(None, description="Document author")
     description: Optional[str] = Field(None, description="Document description")
+    original_path: Optional[str] = Field(
+        None,
+        description="Original file path in resources folder (relative to project root)",
+    )
+    file_hash: Optional[str] = Field(
+        None, description="SHA256 hash of file content for deduplication"
+    )
+    file_size: Optional[int] = Field(None, description="File size in bytes")
+    file_mtime: Optional[str] = Field(
+        None, description="File modification time (ISO format)"
+    )
+    storage_path: Optional[str] = Field(
+        None,
+        description="Path where file is stored (documents folder or original location)",
+    )
+    import_batch: Optional[str] = Field(
+        None, description="Batch identifier for tracking import groups"
+    )
 
     class Config:
         """Pydantic config."""
@@ -89,6 +107,18 @@ class DocumentMetadata(BaseModel):
             metadata["author"] = self.author
         if self.description:
             metadata["description"] = self.description
+        if self.original_path:
+            metadata["original_path"] = self.original_path
+        if self.file_hash:
+            metadata["file_hash"] = self.file_hash
+        if self.file_size is not None:
+            metadata["file_size"] = self.file_size
+        if self.file_mtime:
+            metadata["file_mtime"] = self.file_mtime
+        if self.storage_path:
+            metadata["storage_path"] = self.storage_path
+        if self.import_batch:
+            metadata["import_batch"] = self.import_batch
 
         return metadata
 
@@ -121,6 +151,12 @@ class DocumentMetadata(BaseModel):
             chunk_total=metadata.get("chunk_total"),
             author=metadata.get("author"),
             description=metadata.get("description"),
+            original_path=metadata.get("original_path"),
+            file_hash=metadata.get("file_hash"),
+            file_size=metadata.get("file_size"),
+            file_mtime=metadata.get("file_mtime"),
+            storage_path=metadata.get("storage_path"),
+            import_batch=metadata.get("import_batch"),
         )
 
 
