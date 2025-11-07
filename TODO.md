@@ -23,11 +23,11 @@
 ### ⚠️ 缺失的功能
 
 - ✅ **统一 CLI 工具**：已完成 Phase 1
-- ❌ **文档管理机制完善**：元数据增强、去重、智能存储（Sprint 2.1.5，最高优先级）
-- ❌ **RAG 优化**：混合检索、查询扩展、重排序等（需在文档管理机制完善后进行）
-- ❌ **多模态输入**：Crawl4AI 集成、增强网页读取
-- ❌ **笔记向量化**：笔记专用向量化流程
-- ❌ **对话管理**：多轮对话、历史管理
+- 🔄 **文档管理机制完善**：元数据增强、去重、智能存储（Sprint 2.1.5，进行中）
+- 🚀 **Agentic Search与笔记检索体系**：结构化信息存储、智能检索流程（最高优先级）
+- ⏳ **RAG 优化**：混合检索、查询扩展、重排序等（优先级降低，待Agentic Search完成后）
+- ⏳ **多模态输入**：Crawl4AI 集成、增强网页读取（中优先级）
+- ⏳ **测试与优化**：单元测试、集成测试、性能优化（优先级降低）
 
 ---
 
@@ -83,11 +83,111 @@
 
 ---
 
-## 🔍 Phase 2: RAG 效果优化（优先级：高）
+## 🚀 Phase 2.5: Agentic Search与笔记检索体系（优先级：最高）
+
+> **目标**：实现基于Agentic Search的智能检索系统，支持结构化笔记的精确查询和文本内容的向量检索，LLM可以自主选择检索策略
+
+### Sprint 2.5.1: 数据结构分离
+
+- [ ] **创建结构化信息存储服务**
+  - [ ] 创建 `backend/app/services/note_metadata_service.py`
+  - [ ] SQLite数据库初始化（`backend/app/db/notes.db`）
+  - [ ] 笔记元数据表设计：note_id, title, file_path, tags, links, frontmatter, created_at, updated_at
+  - [ ] 笔记链接关系表设计：source_note_id, target_note_id（支持双向链接查询）
+  - [ ] 标签索引表设计：tag, note_id（支持按标签查询）
+  - [ ] 实现笔记元数据CRUD操作
+  - [ ] 实现 `get_notes_by_tag(tag: str) -> List[NoteMetadata]`
+  - [ ] 实现 `get_linked_notes(note_id: str) -> List[NoteMetadata]`
+  - [ ] 实现 `get_backlinks(note_id: str) -> List[NoteMetadata]`
+
+- [ ] **修改文档处理逻辑**
+  - [ ] 修改 `backend/app/services/document_service.py` 的 `_process_and_store()` 方法
+  - [ ] 提取结构化信息（tags, links, frontmatter）
+  - [ ] 存储到SQLite（通过note_metadata_service）
+  - [ ] 只对纯文本内容生成embedding
+  - [ ] 清理markdown语法（移除`[[links]]`、`#tags`等）后再生成embedding
+
+- [ ] **创建文本清理服务**
+  - [ ] 扩展 `backend/app/services/text_cleaner.py`
+  - [ ] 实现 `clean_for_embedding(content: str) -> str`：移除结构化标记，保留纯文本
+  - [ ] 移除`[[links]]`、`#tags`、frontmatter等
+  - [ ] 保留标题层级（`#`）作为文本内容的一部分
+  - [ ] 移除Obsidian链接但保留链接文本：`[[note-name]]` → `note-name`
+
+### Sprint 2.5.2: Agentic Search框架
+
+- [ ] **创建工具定义**
+  - [ ] 创建 `backend/app/services/agent_tools.py`
+  - [ ] 定义工具列表：
+    - [ ] `search_notes_by_title(query: str, limit: int) -> List[NoteMetadata]`：通过标题embedding搜索笔记
+    - [ ] `get_note_metadata(note_id: str) -> NoteMetadata`：获取笔记的tags和links
+    - [ ] `get_notes_by_tag(tag: str) -> List[NoteMetadata]`：按标签查询笔记
+    - [ ] `get_linked_notes(note_id: str) -> List[NoteMetadata]`：获取链接的笔记
+    - [ ] `read_note_content(note_id: str) -> str`：读取笔记完整内容
+    - [ ] `search_pdf_chunks(query: str, limit: int) -> List[Document]`：搜索PDF文档块
+    - [ ] `search_web(query: str) -> str`：网络搜索（可选，需要API）
+  - [ ] 工具转换为OpenAI function calling格式
+
+- [ ] **创建Agentic Search服务**
+  - [ ] 创建 `backend/app/services/agentic_search_service.py`
+  - [ ] 使用LangChain的Agent框架或自定义ReAct模式
+  - [ ] LLM可以调用工具进行多步骤检索
+  - [ ] 实现检索策略决策逻辑
+
+- [ ] **实现检索策略**
+  - [ ] 创建 `backend/app/services/search_strategy.py`
+  - [ ] **笔记优先策略**：先搜索笔记标题，找到相关笔记后读取tags/links
+  - [ ] **链接扩展策略**：根据links读取相关笔记
+  - [ ] **标签过滤策略**：如果用户提到特定tag，使用标签查询
+  - [ ] **回退策略**：如果笔记中找不到，搜索PDF或网络
+
+### Sprint 2.5.3: LLM工具调用集成
+
+- [ ] **扩展LLMService支持Function Calling**
+  - [ ] 修改 `backend/app/services/llm_service.py`
+  - [ ] 支持OpenAI格式的function calling
+  - [ ] 工具定义转换为function schema
+  - [ ] 解析LLM的工具调用请求
+
+- [ ] **创建Agent执行器**
+  - [ ] 创建 `backend/app/services/agent_executor.py`
+  - [ ] 执行LLM的工具调用
+  - [ ] 管理多轮对话和工具调用循环
+  - [ ] 限制最大工具调用次数（防止无限循环）
+
+### Sprint 2.5.4: 集成到RAG服务
+
+- [ ] **创建新的AgenticRAGService**
+  - [ ] 创建 `backend/app/services/agentic_rag_service.py`
+  - [ ] 替代或扩展现有的RAGService
+  - [ ] 使用Agentic Search进行检索
+  - [ ] 支持流式响应
+
+- [ ] **更新CLI接口**
+  - [ ] 添加agentic search端点 (`cli rag agentic-query <question>`)
+  - [ ] 支持工具调用结果的展示
+  - [ ] 支持检索策略选择 (`--strategy note-first|pdf-first|hybrid`)
+
+### Sprint 2.5.5: 笔记向量化流程
+
+- [ ] **笔记专用向量化服务**
+  - [ ] 修改笔记处理流程，分离结构化信息和文本内容
+  - [ ] 实现笔记批量向量化 (`cli note vectorize --all`)
+  - [ ] 实现笔记增量向量化（仅向量化新笔记）
+  - [ ] 确保结构化信息存储到SQLite，文本内容存储到ChromaDB
+
+- [ ] **笔记检索CLI**
+  - [ ] 实现笔记语义搜索 (`cli note search <query>`)
+  - [ ] 实现按标签查询 (`cli note search --tag <tag>`)
+  - [ ] 实现链接关系查询 (`cli note links --from <note_id>`)
+
+---
+
+## 🔍 Phase 3: RAG 效果优化（优先级：中，待Agentic Search完成后）
 
 > **目标**：迭代优化 RAG 效果，提升检索和生成质量
 
-### Sprint 2.1: 基础测评与基准建立
+### Sprint 3.1: 基础测评与基准建立（优先级降低）
 
 - [ ] **PDF 教材接入**
   - [ ] 准备 31 页 PDF 教材
@@ -162,7 +262,7 @@
   - [ ] 更新CLI文档说明去重选项
   - [ ] 添加文档管理最佳实践指南
 
-### Sprint 2.2: 检索优化
+### Sprint 3.2: 检索优化
 
 - [ ] **混合检索**
   - [ ] 实现关键词检索（BM25 或 TF-IDF）
@@ -178,7 +278,7 @@
   - [ ] 实现检索结果重排序
   - [ ] 添加重排序 CLI 选项 (`cli rag query --rerank`)
 
-### Sprint 2.3: 上下文优化
+### Sprint 3.3: 上下文优化
 
 - [ ] **上下文压缩**
   - [ ] 实现基于重要性的上下文压缩
@@ -190,7 +290,7 @@
   - [ ] 根据问题复杂度动态调整上下文长度
   - [ ] 根据 LLM 模型限制调整上下文
 
-### Sprint 2.4: Prompt 优化
+### Sprint 3.4: Prompt 优化
 
 - [ ] **Prompt 模板管理**
   - [ ] 实现 Prompt 模板系统
@@ -201,7 +301,7 @@
   - [ ] 记录不同模板的效果指标
   - [ ] 选择最优 Prompt 模板
 
-### Sprint 2.5: 评估与迭代
+### Sprint 3.5: 评估与迭代
 
 - [ ] **扩展 Benchmark 数据集**
   - [ ] 基于 PDF 教材创建更多测试问题
@@ -218,11 +318,11 @@
 
 ---
 
-## 📝 Phase 3: Q&A 与笔记管理增强（优先级：高）
+## 📝 Phase 4: Q&A 与笔记管理增强（优先级：中）
 
 > **目标**：提升 Q&A 体验和笔记管理能力
 
-### Sprint 3.1: 对话管理
+### Sprint 4.1: 对话管理
 
 - [ ] **多轮对话支持**
   - [ ] 实现对话上下文管理
@@ -233,17 +333,7 @@
   - [ ] 实现对话历史删除 (`cli rag history delete <session_id>`)
   - [ ] 实现对话导出 (`cli rag history export <session_id>`)
 
-### Sprint 3.2: 笔记向量化
-
-- [ ] **笔记专用向量化服务**
-  - [ ] 创建笔记向量化服务 (`NoteVectorizationService`)
-  - [ ] 实现笔记批量向量化 (`cli note vectorize --all`)
-  - [ ] 实现笔记增量向量化（仅向量化新笔记）
-- [ ] **笔记检索**
-  - [ ] 实现笔记语义搜索 (`cli note search <query>`)
-  - [ ] 实现笔记+文档混合检索 (`cli rag query --include-notes`)
-
-### Sprint 3.3: 笔记链接管理
+### Sprint 4.2: 笔记链接管理（部分功能已在Phase 2.5实现）
 
 - [ ] **双向链接追踪**
   - [ ] 实现反向链接扫描（扫描所有笔记）
@@ -254,7 +344,7 @@
   - [ ] 实现笔记主题提取
   - [ ] 实现笔记推荐 (`cli note recommend <file_path>`)
 
-### Sprint 3.4: AI 笔记生成
+### Sprint 4.3: AI 笔记生成
 
 - [ ] **笔记生成服务**
   - [ ] 实现基于 RAG 的笔记生成服务
@@ -267,11 +357,11 @@
 
 ---
 
-## 🌐 Phase 4: 多模态输入增强（优先级：中）
+## 🌐 Phase 5: 多模态输入增强（优先级：中）
 
 > **目标**：集成 Crawl4AI，增强网页读取能力
 
-### Sprint 4.1: Crawl4AI 集成
+### Sprint 5.1: Crawl4AI 集成
 
 - [ ] **Crawl4AI 集成研究**
   - [ ] 研究 Crawl4AI 功能和 API
@@ -287,7 +377,7 @@
   - [ ] 实现智能内容提取（去除广告、导航等）
   - [ ] 实现多模态内容处理（文本+图片+表格）
 
-### Sprint 4.2: 多模态内容处理
+### Sprint 5.2: 多模态内容处理
 
 - [ ] **图片处理**
   - [ ] 实现图片 OCR（文字提取）
@@ -301,7 +391,7 @@
   - [ ] 实现文本+图片混合向量化
   - [ ] 实现多模态检索支持
 
-### Sprint 4.3: 多模态 CLI
+### Sprint 5.3: 多模态 CLI
 
 - [ ] **URL 处理 CLI 增强**
   - [ ] 更新 `cli document add --url` 支持 Crawl4AI
@@ -314,9 +404,9 @@
 
 ---
 
-## 🧪 Phase 5: 测试与优化（优先级：中）
+## 🧪 Phase 6: 测试与优化（优先级：低）
 
-### Sprint 5.1: 单元测试
+### Sprint 6.1: 单元测试
 
 - [ ] 文档处理服务测试
 - [ ] 笔记管理服务测试
@@ -324,14 +414,14 @@
 - [ ] CLI 命令测试
 - [ ] 测试覆盖率 ≥ 70%
 
-### Sprint 5.2: 集成测试
+### Sprint 6.2: 集成测试
 
 - [ ] 端到端文档处理流程测试
 - [ ] RAG Pipeline 集成测试
 - [ ] CLI 集成测试
 - [ ] 性能测试
 
-### Sprint 5.3: 性能优化
+### Sprint 6.3: 性能优化
 
 - [ ] 向量检索优化
 - [ ] 批量处理优化
@@ -340,16 +430,16 @@
 
 ---
 
-## 📚 Phase 6: 文档与工具（优先级：低）
+## 📚 Phase 7: 文档与工具（优先级：低）
 
-### Sprint 6.1: CLI 文档
+### Sprint 7.1: CLI 文档
 
 - [ ] CLI 使用手册
 - [ ] CLI 命令参考
 - [ ] CLI 示例脚本
 - [ ] CLI 最佳实践
 
-### Sprint 6.2: 开发文档
+### Sprint 7.2: 开发文档
 
 - [ ] API 文档更新
 - [ ] 架构文档更新
@@ -366,19 +456,26 @@
 - [x] 可以通过 CLI 完成所有操作
 - [ ] CLI 文档完善（待补充使用说明）
 
-### Milestone 2: RAG 效果优化（Phase 2 完成）
+### Milestone 2: Agentic Search与笔记检索体系（Phase 2.5 完成）
+
+- [ ] 结构化信息存储（SQLite）完成
+- [ ] 文本内容与结构化信息分离
+- [ ] Agentic Search框架实现
+- [ ] LLM工具调用集成完成
+- [ ] 笔记优先检索策略可用
+
+### Milestone 3: RAG 效果优化（Phase 3 完成，优先级降低）
 
 - [ ] PDF 教材成功接入并测评
 - [ ] RAG 效果相比基线提升 ≥ 20%
 - [ ] Benchmark 评估流程完善
 
-### Milestone 3: Q&A 与笔记管理增强（Phase 3 完成）
+### Milestone 4: Q&A 与笔记管理增强（Phase 4 完成）
 
 - [ ] 多轮对话支持
-- [ ] 笔记向量化完成
 - [ ] AI 笔记生成可用
 
-### Milestone 4: 多模态输入（Phase 4 完成）
+### Milestone 5: 多模态输入（Phase 5 完成）
 
 - [ ] Crawl4AI 集成完成
 - [ ] 多模态内容处理可用
@@ -400,18 +497,21 @@
 
 ### 立即开始（本周）
 
-1. **Phase 2.1**: PDF 教材接入和基础测评
-2. **Phase 2.1.5**: 文档管理机制完善（最高优先级）
-   - 元数据模型增强
-   - 文件哈希和去重功能
-   - 智能存储策略
+1. **Phase 2.1.5**: 完成文档管理机制完善的测试与验证
+2. **Phase 2.5**: Agentic Search与笔记检索体系（最高优先级）
+   - Sprint 2.5.1: 数据结构分离（SQLite + ChromaDB）
+   - Sprint 2.5.2: Agentic Search框架搭建
 
-### 近期计划（2-3 周）
+### 近期计划（2-4 周）
 
-1. **Phase 2.1.5**: 完成文档管理机制完善（必须在此模块彻底完善后再进行Benchmark与调优）
-2. **Phase 2.1**: 完成PDF教材接入和基准测试
-3. **Phase 2.2-2.3**: 开始 RAG 检索优化（在文档管理机制完善后）
-4. **Phase 3.1**: 对话管理实现
+1. **Phase 2.5**: 完成Agentic Search核心功能
+   - 结构化信息存储服务
+   - 文本清理与embedding分离
+   - Agent工具定义与执行器
+   - AgenticRAGService集成
+2. **Phase 2.5.5**: 笔记向量化流程完善
+3. **Phase 3**: RAG效果优化（优先级降低，待Agentic Search完成后）
+4. **Phase 4**: 对话管理实现
 
 ---
 
@@ -422,8 +522,9 @@
 - 定期回顾和调整优先级
 - 遵循项目规范（文件长度、代码风格、提交规范）
 - **重点关注**：
-  - **文档管理机制完善（Sprint 2.1.5）**：必须彻底完善后再进行Benchmark与调优
-  - RAG 效果优化：在文档管理机制完善后进行
+  - **Agentic Search与笔记检索体系（Phase 2.5）**：最高优先级，核心功能
+  - **文档管理机制完善（Sprint 2.1.5）**：基础功能，需完成测试验证
+  - RAG 效果优化：优先级降低，待Agentic Search完成后进行
   - CLI 工具完善
 
 ---
@@ -489,3 +590,14 @@
 - ✅ 优先级设为最高，必须在完成后再进行Benchmark与调优
 - ✅ 包含元数据增强、文件哈希、去重检查、智能存储等功能
 - ✅ 目标：避免文档重复添加，为检索阶段提供帮助信息
+
+### 2024-01-XX: Agentic Search与笔记检索体系（Phase 2.5）
+
+- ✅ 新增Agentic Search与笔记检索体系任务（最高优先级）
+- ✅ 重构计划文档，降低RAG优化与评测的优先级
+- ✅ 优先实现笔记的检索体系与agentic search流程
+- ✅ 核心设计：
+  - 结构化信息（tags, links, frontmatter）存储在SQLite，支持精确查询
+  - 只有普通文本内容生成embedding用于语义搜索
+  - LLM通过工具调用自主决定检索策略（笔记优先 → 标签/链接查询 → 网络/PDF搜索）
+- ✅ 目标：实现智能检索系统，充分利用Obsidian笔记的结构化特征
