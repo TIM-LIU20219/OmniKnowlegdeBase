@@ -41,12 +41,20 @@ LLM_TIMEOUT=60
 
 ### Embedding 模型配置
 
+**⚠️ 重要提示：索引和查询必须使用相同的embedding模型！**
+
+ChromaDB集合会根据第一个文档的embedding维度锁定集合维度。如果后续使用不同维度的模型查询，会导致错误。
+
 ```bash
 # 选择Embedding提供商：local, zhipu, baidu, alibaba, openai
 EMBEDDING_PROVIDER=local
 
 # 本地模型配置（推荐使用中文模型）
-EMBEDDING_MODEL=BAAI/bge-small-zh-v1.5
+# ⚠️ 确保索引和查询使用相同的模型！
+EMBEDDING_MODEL=BAAI/bge-small-zh-v1.5  # 512 dimensions
+# 或者使用其他模型：
+# EMBEDDING_MODEL=all-MiniLM-L6-v2  # 384 dimensions (英文模型)
+# EMBEDDING_MODEL=BAAI/bge-base-zh-v1.5  # 768 dimensions
 EMBEDDING_DEVICE=auto  # auto, cpu, cuda
 
 # 智谱AI Embedding配置
@@ -60,6 +68,19 @@ BAIDU_EMBEDDING_MODEL=text-embedding
 # 阿里通义 Embedding配置
 ALIBABA_EMBEDDING_API_BASE=https://dashscope.aliyuncs.com/api/v1/services/embeddings/text-embedding/text-embedding
 ALIBABA_EMBEDDING_MODEL=text-embedding-v2
+```
+
+**常见embedding模型维度：**
+
+- `all-MiniLM-L6-v2`: 384维（英文）
+- `BAAI/bge-small-zh-v1.5`: 512维（中文，推荐）
+- `BAAI/bge-base-zh-v1.5`: 768维（中文）
+- `BAAI/bge-large-zh-v1.5`: 1024维（中文）
+
+**检查embedding维度：**
+
+```bash
+python -m backend.app.utils.check_embedding_dim
 ```
 
 ### Rerank 模型配置

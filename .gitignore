@@ -81,6 +81,9 @@ chroma_db/
 documents/
 notes/
 resources/
+
+# Benchmark results
+benchmark_results/
 # OS
 Thumbs.db
 .DS_Store
