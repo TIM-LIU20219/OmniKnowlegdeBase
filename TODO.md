@@ -79,6 +79,7 @@
 - [x] 集合删除 (`cli vector delete-collection <collection>`)
 - [x] 文档删除 (`cli vector delete-document <collection> <doc_id>`)
 - [x] 向量查询 (`cli vector query <collection> <query>`)
+- [x] 向量服务维度检查工具 (`backend/app/utils/check_embedding_dim.py`)
 
 ---
 
@@ -102,53 +103,53 @@
 
 > **目标**：完善文档管理机制，利用元数据避免重复添加，并为检索阶段提供帮助信息
 
-- [ ] **元数据模型增强**
-  - [ ] 扩展 `DocumentMetadata` 模型，添加以下字段：
-    - [ ] `original_path`: 原始文件路径（resources文件夹中的相对路径）
-    - [ ] `file_hash`: 文件内容SHA256哈希（用于去重）
-    - [ ] `file_size`: 文件大小（字节）
-    - [ ] `file_mtime`: 文件修改时间（ISO格式）
-    - [ ] `storage_path`: 文件存储路径（documents文件夹或原始位置）
-    - [ ] `import_batch`: 导入批次标识符（用于跟踪导入组）
-  - [ ] 更新 `to_chromadb_metadata()` 方法支持新字段
-  - [ ] 更新 `from_chromadb_metadata()` 方法支持新字段
-- [ ] **文件哈希工具**
-  - [ ] 创建 `backend/app/utils/file_hash.py`
-  - [ ] 实现 `calculate_file_hash()` 函数（SHA256）
-  - [ ] 实现 `get_file_metadata()` 函数（文件大小、修改时间）
-  - [ ] 添加单元测试
-- [ ] **去重检查服务**
-  - [ ] 在 `DocumentService` 中实现 `_check_duplicate()` 方法
-    - [ ] 基于文件hash查询已存在的文档
-    - [ ] 返回已存在的 `DocumentMetadata` 或 `None`
-  - [ ] 实现 `_should_copy_file()` 方法
-    - [ ] 判断文件是否在resources文件夹中
-    - [ ] resources文件夹中的文件不复制，只保存引用
-    - [ ] 临时上传的文件复制到documents文件夹
-  - [ ] 创建 `DuplicateDocumentError` 异常类
-- [ ] **文档处理流程改进**
-  - [ ] 修改 `process_and_store_pdf()` 方法：
-    - [ ] 计算文件hash和元数据
-    - [ ] 检查重复文档（可选，通过参数控制）
-    - [ ] 实现智能存储策略（resources文件不复制）
-    - [ ] 增强元数据（添加所有新字段）
-    - [ ] 支持 `skip_duplicates` 参数
-    - [ ] 支持 `import_batch` 参数
-  - [ ] 修改 `process_and_store_markdown()` 方法（类似增强）
-  - [ ] 修改 `process_and_store_url()` 方法（类似增强）
-  - [ ] 更新导入脚本 `import_pdfs.py`：
-    - [ ] 添加 `--skip-duplicates` 选项
-    - [ ] 添加 `--batch-id` 选项
-    - [ ] 显示重复文档警告信息
-- [ ] **检索阶段增强**
-  - [ ] 在 `ChromaDBRetriever` 中实现 `retrieve_with_context()` 方法
-    - [ ] 返回增强的检索结果，包含源文件信息
-    - [ ] 包含 `original_path`、`storage_path`、`file_size`、`import_batch` 等
-  - [ ] 更新 `RAGService` 使用增强的检索结果
-  - [ ] 添加 CLI 命令选项：
-    - [ ] `cli rag query --show-source-info` 显示源文件信息
-    - [ ] `cli document list --by-batch <batch_id>` 按批次列出文档
-    - [ ] `cli document find-duplicates` 查找重复文档
+- [x] **元数据模型增强** ✅
+  - [x] 扩展 `DocumentMetadata` 模型，添加以下字段：
+    - [x] `original_path`: 原始文件路径（resources文件夹中的相对路径）
+    - [x] `file_hash`: 文件内容SHA256哈希（用于去重）
+    - [x] `file_size`: 文件大小（字节）
+    - [x] `file_mtime`: 文件修改时间（ISO格式）
+    - [x] `storage_path`: 文件存储路径（documents文件夹或原始位置）
+    - [x] `import_batch`: 导入批次标识符（用于跟踪导入组）
+  - [x] 更新 `to_chromadb_metadata()` 方法支持新字段
+  - [x] 更新 `from_chromadb_metadata()` 方法支持新字段
+- [x] **文件哈希工具** ✅
+  - [x] 创建 `backend/app/utils/file_hash.py`
+  - [x] 实现 `calculate_file_hash()` 函数（SHA256）
+  - [x] 实现 `get_file_metadata()` 函数（文件大小、修改时间）
+  - [ ] 添加单元测试（待补充）
+- [x] **去重检查服务** ✅
+  - [x] 在 `DocumentService` 中实现 `_check_duplicate()` 方法
+    - [x] 基于文件hash查询已存在的文档
+    - [x] 返回已存在的 `DocumentMetadata` 或 `None`
+  - [x] 实现 `_should_copy_file()` 方法
+    - [x] 判断文件是否在resources文件夹中
+    - [x] resources文件夹中的文件不复制，只保存引用
+    - [x] 临时上传的文件复制到documents文件夹
+  - [x] 创建 `DuplicateDocumentError` 异常类
+- [x] **文档处理流程改进** ✅
+  - [x] 修改 `process_and_store_pdf()` 方法：
+    - [x] 计算文件hash和元数据
+    - [x] 检查重复文档（可选，通过参数控制）
+    - [x] 实现智能存储策略（resources文件不复制）
+    - [x] 增强元数据（添加所有新字段）
+    - [x] 支持 `skip_duplicates` 参数
+    - [x] 支持 `import_batch` 参数
+  - [x] 修改 `process_and_store_markdown()` 方法（类似增强）
+  - [x] 修改 `process_and_store_url()` 方法（支持 `import_batch` 参数，URL无需文件哈希）
+  - [x] 更新导入脚本 `import_pdfs.py`：
+    - [x] 添加 `--skip-duplicates` 选项
+    - [x] 添加 `--batch-id` 选项
+    - [x] 显示重复文档警告信息
+- [x] **检索阶段增强** ✅
+  - [x] 在 `ChromaDBRetriever` 中实现 `retrieve_with_context()` 方法
+    - [x] 返回增强的检索结果，包含源文件信息
+    - [x] 包含 `original_path`、`storage_path`、`file_size`、`import_batch` 等
+  - [ ] 更新 `RAGService` 使用增强的检索结果（待验证）
+  - [x] 添加 CLI 命令选项：
+    - [x] `cli rag query --show-source-info` 显示源文件信息
+    - [x] `cli document list --by-batch <batch_id>` 按批次列出文档
+    - [x] `cli document find-duplicates` 查找重复文档
 - [ ] **测试与验证**
   - [ ] 测试文件hash计算准确性
   - [ ] 测试去重检查功能（相同文件、不同文件名）
