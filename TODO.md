@@ -87,32 +87,32 @@
 
 > **目标**：实现基于Agentic Search的智能检索系统，支持结构化笔记的精确查询和文本内容的向量检索，LLM可以自主选择检索策略
 
-### Sprint 2.5.1: 数据结构分离
+### Sprint 2.5.1: 数据结构分离 ✅
 
-- [ ] **创建结构化信息存储服务**
-  - [ ] 创建 `backend/app/services/note_metadata_service.py`
-  - [ ] SQLite数据库初始化（`backend/app/db/notes.db`）
-  - [ ] 笔记元数据表设计：note_id, title, file_path, tags, links, frontmatter, created_at, updated_at
-  - [ ] 笔记链接关系表设计：source_note_id, target_note_id（支持双向链接查询）
-  - [ ] 标签索引表设计：tag, note_id（支持按标签查询）
-  - [ ] 实现笔记元数据CRUD操作
-  - [ ] 实现 `get_notes_by_tag(tag: str) -> List[NoteMetadata]`
-  - [ ] 实现 `get_linked_notes(note_id: str) -> List[NoteMetadata]`
-  - [ ] 实现 `get_backlinks(note_id: str) -> List[NoteMetadata]`
+- [x] **创建结构化信息存储服务** ✅
+  - [x] 创建 `backend/app/services/note_metadata_service.py`
+  - [x] SQLite数据库初始化（`backend/app/db/notes.db`）
+  - [x] 笔记元数据表设计：note_id, title, file_path, tags, links, frontmatter, created_at, updated_at
+  - [x] 笔记链接关系表设计：source_note_id, target_note_id（支持双向链接查询）
+  - [x] 标签索引表设计：tag, note_id（支持按标签查询）
+  - [x] 实现笔记元数据CRUD操作
+  - [x] 实现 `get_notes_by_tag(tag: str) -> List[NoteMetadata]`
+  - [x] 实现 `get_linked_notes(note_id: str) -> List[NoteMetadata]`
+  - [x] 实现 `get_backlinks(note_id: str) -> List[NoteMetadata]`
 
-- [ ] **修改文档处理逻辑**
-  - [ ] 修改 `backend/app/services/document_service.py` 的 `_process_and_store()` 方法
-  - [ ] 提取结构化信息（tags, links, frontmatter）
-  - [ ] 存储到SQLite（通过note_metadata_service）
-  - [ ] 只对纯文本内容生成embedding
-  - [ ] 清理markdown语法（移除`[[links]]`、`#tags`等）后再生成embedding
+- [x] **修改文档处理逻辑** ✅
+  - [x] 修改 `backend/app/services/document_service.py` 的 `_process_and_store()` 方法
+  - [x] 提取结构化信息（tags, links, frontmatter）
+  - [x] 存储到SQLite（通过note_metadata_service）
+  - [x] 只对纯文本内容生成embedding
+  - [x] 清理markdown语法（移除`[[links]]`、`#tags`等）后再生成embedding
 
-- [ ] **创建文本清理服务**
-  - [ ] 扩展 `backend/app/services/text_cleaner.py`
-  - [ ] 实现 `clean_for_embedding(content: str) -> str`：移除结构化标记，保留纯文本
-  - [ ] 移除`[[links]]`、`#tags`、frontmatter等
-  - [ ] 保留标题层级（`#`）作为文本内容的一部分
-  - [ ] 移除Obsidian链接但保留链接文本：`[[note-name]]` → `note-name`
+- [x] **创建文本清理服务** ✅
+  - [x] 扩展 `backend/app/utils/text_cleaner.py`
+  - [x] 实现 `clean_for_embedding(content: str) -> str`：移除结构化标记，保留纯文本
+  - [x] 移除`[[links]]`、`#tags`、frontmatter等
+  - [x] 保留标题层级（`#`）作为文本内容的一部分
+  - [x] 移除Obsidian链接但保留链接文本：`[[note-name]]` → `note-name`
 
 ### Sprint 2.5.2: Agentic Search框架
 

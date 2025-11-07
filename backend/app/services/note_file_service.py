@@ -209,12 +209,29 @@ class NoteFileService:
         links = self._extract_links(content)
 
         # Parse timestamps
-        created_at = datetime.fromisoformat(
-            frontmatter.get("created_at", datetime.now().isoformat())
-        )
-        updated_at = datetime.fromisoformat(
-            frontmatter.get("updated_at", datetime.now().isoformat())
-        )
+        created_at_str = frontmatter.get("created_at", datetime.now().isoformat())
+        updated_at_str = frontmatter.get("updated_at", datetime.now().isoformat())
+        
+        # Handle both string and datetime objects
+        if isinstance(created_at_str, datetime):
+            created_at = created_at_str
+        elif isinstance(created_at_str, str):
+            try:
+                created_at = datetime.fromisoformat(created_at_str)
+            except (ValueError, TypeError):
+                created_at = datetime.now()
+        else:
+            created_at = datetime.now()
+        
+        if isinstance(updated_at_str, datetime):
+            updated_at = updated_at_str
+        elif isinstance(updated_at_str, str):
+            try:
+                updated_at = datetime.fromisoformat(updated_at_str)
+            except (ValueError, TypeError):
+                updated_at = datetime.now()
+        else:
+            updated_at = datetime.now()
 
         # Get tags
         tags = frontmatter.get("tags", [])

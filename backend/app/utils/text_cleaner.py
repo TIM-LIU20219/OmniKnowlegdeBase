@@ -247,3 +247,70 @@ class TextCleaner:
 
         return False
 
+    @staticmethod
+    def clean_for_embedding(content: str) -> str:
+        """
+        Clean markdown content for embedding generation.
+        
+        Removes structured markdown syntax while preserving text content:
+        - Removes Obsidian-style links [[note-name]] but keeps the link text
+        - Removes markdown tags (#tag) but keeps the tag text
+        - Removes frontmatter (YAML between ---)
+        - Preserves markdown headers (# Title) as they are part of content structure
+        - Removes other markdown formatting but keeps text
+        
+        Args:
+            content: Markdown content with structured elements
+            
+        Returns:
+            Cleaned text suitable for embedding
+        """
+        if not content:
+            return ""
+        
+        # Step 1: Remove frontmatter (YAML between ---)
+        frontmatter_pattern = r"^---\s*\n.*?\n---\s*\n"
+        content = re.sub(frontmatter_pattern, "", content, flags=re.DOTALL | re.MULTILINE)
+        
+        # Step 2: Replace Obsidian-style links [[note-name]] with just the note name
+        # This preserves the semantic meaning while removing the link syntax
+        obsidian_link_pattern = r"\[\[([^\]]+)\]\]"
+        content = re.sub(obsidian_link_pattern, r"\1", content)
+        
+        # Step 3: Remove markdown tags (#tag) but keep the tag text
+        # Match #tag at start of line or after whitespace, but not in headers
+        tag_pattern = r"(?<!#)(?<!\w)#(\w+)"
+        content = re.sub(tag_pattern, r"\1", content)
+        
+        # Step 4: Remove markdown link syntax [text](url) but keep the text
+        markdown_link_pattern = r"\[([^\]]+)\]\([^\)]+\)"
+        content = re.sub(markdown_link_pattern, r"\1", content)
+        
+        # Step 5: Remove image syntax ![alt](url) but keep alt text
+        image_pattern = r"!\[([^\]]*)\]\([^\)]+\)"
+        content = re.sub(image_pattern, r"\1", content)
+        
+        # Step 6: Remove inline code formatting but keep the code text
+        inline_code_pattern = r"`([^`]+)`"
+        content = re.sub(inline_code_pattern, r"\1", content)
+        
+        # Step 7: Remove bold/italic formatting but keep text
+        # Remove **bold** and *italic*
+        content = re.sub(r"\*\*([^\*]+)\*\*", r"\1", content)
+        content = re.sub(r"\*([^\*]+)\*", r"\1", content)
+        content = re.sub(r"__([^_]+)__", r"\1", content)
+        content = re.sub(r"_([^_]+)_", r"\1", content)
+        
+        # Step 8: Remove strikethrough
+        content = re.sub(r"~~([^~]+)~~", r"\1", content)
+        
+        # Step 9: Remove reference-style links [text][ref] but keep text
+        ref_link_pattern = r"\[([^\]]+)\]\[[^\]]+\]"
+        content = re.sub(ref_link_pattern, r"\1", content)
+        
+        # Step 10: Clean up extra whitespace
+        content = re.sub(r"\n{3,}", "\n\n", content)  # Normalize multiple newlines
+        content = re.sub(r"[ \t]+", " ", content)  # Normalize spaces
+        
+        return content.strip()
+

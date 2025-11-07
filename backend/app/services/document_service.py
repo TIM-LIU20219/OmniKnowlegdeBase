@@ -1,17 +1,21 @@
 """Document service for orchestrating document processing pipeline."""
 
 import logging
+import re
+from datetime import datetime
 from pathlib import Path
 from typing import List, Optional, Tuple
 from uuid import uuid4
 
-from backend.app.models.metadata import DocumentMetadata, SourceType
+from backend.app.models.metadata import DocumentMetadata, DocType, NoteMetadata, SourceType
 from backend.app.services.chunking_service import ChunkingService
 from backend.app.services.document_processor import DocumentProcessor
 from backend.app.services.embedding_service import EmbeddingService
+from backend.app.services.note_metadata_service import NoteMetadataService
 from backend.app.services.vector_service import VectorService
 from backend.app.utils.file_hash import get_file_hash_and_metadata
-from backend.app.utils.filesystem import BASE_DIR, DOCUMENTS_DIR, ensure_file_directory
+from backend.app.utils.filesystem import BASE_DIR, DOCUMENTS_DIR, NOTES_DIR, ensure_file_directory
+from backend.app.utils.text_cleaner import TextCleaner
 
 logger = logging.getLogger(__name__)
 
@@ -39,6 +43,7 @@ class DocumentService:
         vector_service: Optional[VectorService] = None,
         chunking_service: Optional[ChunkingService] = None,
         embedding_service: Optional[EmbeddingService] = None,
+        note_metadata_service: Optional[NoteMetadataService] = None,
     ):
         """
         Initialize document service.
@@ -47,11 +52,13 @@ class DocumentService:
             vector_service: Optional VectorService instance
             chunking_service: Optional ChunkingService instance
             embedding_service: Optional EmbeddingService instance
+            note_metadata_service: Optional NoteMetadataService instance
         """
         self.processor = DocumentProcessor()
         self.vector_service = vector_service or VectorService()
         self.chunking_service = chunking_service or ChunkingService()
         self.embedding_service = embedding_service or EmbeddingService()
+        self.note_metadata_service = note_metadata_service or NoteMetadataService()
 
         logger.info("Document service initialized")
 
@@ -181,8 +188,8 @@ class DocumentService:
 
             metadata.import_batch = import_batch
 
-            # Process and store
-            return self._process_and_store(text, metadata)
+            # Process and store (pass original content for note processing)
+            return self._process_and_store(text, metadata, original_content=content)
 
         except DuplicateDocumentError:
             raise
@@ -293,19 +300,37 @@ class DocumentService:
             raise
 
     def _process_and_store(
-        self, text: str, metadata: DocumentMetadata
+        self, text: str, metadata: DocumentMetadata, original_content: Optional[str] = None
     ) -> DocumentMetadata:
         """
         Process text and store chunks in vector database.
 
+        For notes, also stores structured information in SQLite and uses cleaned text for embedding.
+
         Args:
             text: Processed text content
             metadata: Document metadata
+            original_content: Optional original markdown content (needed for note processing)
 
         Returns:
             Updated DocumentMetadata with chunk information
         """
         try:
+            # Check if this is a note that needs structured information storage
+            is_note = (
+                metadata.doc_type == DocType.NOTE
+                or metadata.source == SourceType.NOTE
+                or (metadata.file_path and self._is_note_path(metadata.file_path))
+            )
+
+            if is_note and original_content:
+                # Extract and store structured information for notes
+                self._process_note_metadata(metadata, original_content)
+
+                # Clean text for embedding (remove structured markdown syntax)
+                text = TextCleaner.clean_for_embedding(original_content)
+                logger.debug(f"Cleaned text for embedding (removed structured syntax)")
+
             # Chunk text
             chunks = self.chunking_service.chunk_text(text)
             total_chunks = len(chunks)
@@ -360,6 +385,114 @@ class DocumentService:
         except Exception as e:
             logger.error(f"Error processing and storing document: {e}")
             raise
+
+    def _is_note_path(self, file_path: str) -> bool:
+        """
+        Check if file path is in notes directory.
+
+        Args:
+            file_path: File path to check
+
+        Returns:
+            True if path is in notes directory
+        """
+        try:
+            path = Path(file_path)
+            if path.is_absolute():
+                return NOTES_DIR in path.parents or path.parent == NOTES_DIR
+            else:
+                # Relative path - check if it starts with notes directory structure
+                return not str(path).startswith("..") and not str(path).startswith("/")
+        except Exception:
+            return False
+
+    def _process_note_metadata(self, metadata: DocumentMetadata, original_content: str):
+        """
+        Extract structured information from note and store in SQLite.
+
+        Args:
+            metadata: Document metadata
+            original_content: Original markdown content
+        """
+        try:
+            # Extract frontmatter
+            frontmatter, _ = self.processor._extract_frontmatter(original_content)
+
+            # Extract tags (from frontmatter and markdown)
+            tags = metadata.tags.copy()
+            # Also extract markdown tags (#tag)
+            tag_pattern = r"#(\w+)"
+            markdown_tags = re.findall(tag_pattern, original_content)
+            tags.extend(markdown_tags)
+            tags = list(set(tags))  # Remove duplicates
+
+            # Extract Obsidian-style links [[note-name]]
+            links = self._extract_obsidian_links(original_content)
+
+            # Generate note_id from file_path or doc_id
+            if metadata.file_path:
+                file_path_obj = Path(metadata.file_path)
+                # Try to get relative path from notes directory
+                try:
+                    relative_path = file_path_obj.relative_to(NOTES_DIR)
+                    note_id = str(relative_path).replace("\\", "/").replace(".md", "")
+                    # Also update file_path to relative path for consistency
+                    file_path_for_db = str(relative_path)
+                except ValueError:
+                    # If not in notes directory, use the file path as-is
+                    note_id = str(file_path_obj).replace("\\", "/").replace(".md", "")
+                    file_path_for_db = metadata.file_path
+            else:
+                note_id = metadata.doc_id
+                file_path_for_db = ""
+
+            # Parse timestamps
+            created_at_str = metadata.created_at
+            updated_at_str = metadata.updated_at or metadata.created_at
+
+            try:
+                created_at = datetime.fromisoformat(created_at_str)
+            except (ValueError, TypeError):
+                created_at = datetime.now()
+
+            try:
+                updated_at = datetime.fromisoformat(updated_at_str) if updated_at_str else created_at
+            except (ValueError, TypeError):
+                updated_at = created_at
+
+            # Create NoteMetadata
+            note_metadata = NoteMetadata(
+                note_id=note_id,
+                title=metadata.title,
+                file_path=file_path_for_db,
+                tags=tags,
+                links=links,
+                frontmatter=frontmatter,
+                created_at=created_at,
+                updated_at=updated_at,
+            )
+
+            # Store in SQLite
+            self.note_metadata_service.create_note_metadata(note_metadata)
+            logger.info(f"Stored note metadata in SQLite: {note_id}")
+
+        except Exception as e:
+            logger.warning(f"Error processing note metadata: {e}")
+            # Don't raise - allow document processing to continue
+
+    def _extract_obsidian_links(self, content: str) -> List[str]:
+        """
+        Extract Obsidian-style links [[note-name]] from content.
+
+        Args:
+            content: Markdown content
+
+        Returns:
+            List of linked note names
+        """
+        pattern = r"\[\[([^\]]+)\]\]"
+        matches = re.findall(pattern, content)
+        return list(set(matches))  # Return unique links
 
     def _save_document_file(self, file_path: Path, extension: str) -> Path:
         """
