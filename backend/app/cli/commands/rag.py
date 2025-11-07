@@ -19,7 +19,8 @@ def rag_group():
 @click.option("--threshold", type=float, help="Similarity score threshold (0-1)")
 @click.option("--stream", is_flag=True, help="Stream response")
 @click.option("--json", "json_output", is_flag=True, help="Output as JSON")
-def query_rag(question, collection, k, threshold, stream, json_output):
+@click.option("--show-source-info", is_flag=True, help="Show source file information")
+def query_rag(question, collection, k, threshold, stream, json_output, show_source_info):
     """Query the RAG system with a question."""
     from backend.app.services.embedding_service import EmbeddingService
     from backend.app.services.llm_service import LLMService
@@ -62,6 +63,15 @@ def query_rag(question, collection, k, threshold, stream, json_output):
                     click.echo("\nSources:")
                     for i, source in enumerate(result["sources"], 1):
                         click.echo(f"  {i}. {source['title']} (ID: {source['doc_id']})")
+                        if show_source_info:
+                            # Try to get source info from metadata if available
+                            source_meta = source.get("metadata", {})
+                            if source_meta.get("original_path"):
+                                click.echo(f"      Original path: {source_meta['original_path']}")
+                            if source_meta.get("storage_path"):
+                                click.echo(f"      Storage path: {source_meta['storage_path']}")
+                            if source_meta.get("import_batch"):
+                                click.echo(f"      Import batch: {source_meta['import_batch']}")
 
     except Exception as e:
         click.echo(f"Error: {e}", err=True)
