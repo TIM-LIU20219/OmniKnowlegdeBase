@@ -26,6 +26,53 @@ class VectorService:
             f"Initialized ChromaDB client at {self.config.persist_directory}"
         )
 
+    def get_collection_embedding_dimension(self, collection_name: str) -> Optional[int]:
+        """
+        Get the embedding dimension expected by a collection.
+        
+        This method tries multiple approaches to get the dimension:
+        1. Check stored embeddings via get()
+        2. Try a test query to see what dimension ChromaDB expects
+        
+        Args:
+            collection_name: Name of the collection
+            
+        Returns:
+            Embedding dimension or None if collection is empty
+        """
+        try:
+            collection = self.get_or_create_collection(collection_name)
+            if collection.count() == 0:
+                return None
+            
+            # Method 1: Get one sample embedding to check dimension
+            try:
+                results = collection.get(limit=1, include=["embeddings"])
+                embeddings = results.get("embeddings", [])
+                if len(embeddings) > 0:
+                    # Handle numpy arrays
+                    import numpy as np
+                    emb = embeddings[0]
+                    if isinstance(emb, np.ndarray):
+                        dim = emb.shape[0] if len(emb.shape) > 0 else len(emb)
+                    elif isinstance(emb, list):
+                        dim = len(emb)
+                    else:
+                        dim = len(list(emb))
+                    logger.debug(f"Got collection dimension from stored embeddings: {dim}")
+                    return dim
+            except Exception as e:
+                logger.debug(f"Could not get dimension from stored embeddings: {e}")
+            
+            # Method 2: Try to infer from a test query (if we have an embedding service)
+            # This is a fallback - we'll return None and let the query itself fail
+            # with a more informative error
+            return None
+            
+        except Exception as e:
+            logger.warning(f"Error getting collection dimension: {e}")
+            return None
+
     def get_or_create_collection(
         self, name: str, metadata: Optional[Dict[str, Any]] = None
     ):
