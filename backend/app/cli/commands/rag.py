@@ -141,90 +141,114 @@ def history_rag(json_output):
 
 @rag_group.command(name="agentic-query")
 @click.argument("question", type=str)
+@click.option(
+    "--strategy",
+    type=click.Choice(["note-first", "hybrid"], case_sensitive=False),
+    default="hybrid",
+    help="Search strategy hint: note-first (prioritize notes), hybrid (combine strategies). Note: LLM will autonomously decide tool usage.",
+)
 @click.option("--max-iterations", default=5, help="Maximum number of tool calling iterations")
+@click.option("--stream", is_flag=True, help="Stream response")
 @click.option("--json", "json_output", is_flag=True, help="Output as JSON")
 @click.option("--verbose", is_flag=True, help="Show detailed tool calls")
-def agentic_query(question, max_iterations, json_output, verbose):
+def agentic_query(question, strategy, max_iterations, stream, json_output, verbose):
     """Query using Agentic Search with LLM tool calling."""
-    from backend.app.services.agent_executor import AgentExecutor
-    from backend.app.services.agentic_search_service import AgenticSearchService
-    from backend.app.services.agent_tools import AgentTools
-    from backend.app.services.embedding_service import EmbeddingService
-    from backend.app.services.llm_service import LLMService
-    from backend.app.services.note_file_service import NoteFileService
-    from backend.app.services.note_metadata_service import NoteMetadataService
-    from backend.app.services.vector_service import VectorService
+    from backend.app.services.agentic_rag_service import AgenticRAGService
 
     try:
-        click.echo("Initializing Agentic Search...")
-        
-        # Initialize services
-        vector_service = VectorService()
-        embedding_service = EmbeddingService()
-        llm_service = LLMService()
-        note_metadata_service = NoteMetadataService()
-        note_file_service = NoteFileService()
-        
-        # Initialize tools
-        tools = AgentTools(
-            note_metadata_service=note_metadata_service,
-            note_file_service=note_file_service,
-            vector_service=vector_service,
-            embedding_service=embedding_service,
-            collection_name="documents",
-        )
-        
-        # Initialize agentic search service
-        agentic_search_service = AgenticSearchService(tools=tools)
-        
-        # Initialize agent executor
-        executor = AgentExecutor(
-            llm_service=llm_service,
-            agentic_search_service=agentic_search_service,
+        # Initialize Agentic RAG service
+        agentic_rag_service = AgenticRAGService(
             max_iterations=max_iterations,
+            default_strategy=strategy,
         )
-        
-        click.echo(f"Querying: {question}\n")
-        
-        # Execute query
-        result = executor.execute(question)
-        
-        if json_output:
-            # Convert messages to serializable format
-            serializable_result = {
-                "answer": result["answer"],
-                "iterations": result["iterations"],
-                "tool_calls": result["tool_calls"],
-                "max_iterations_reached": result.get("max_iterations_reached", False),
-            }
-            click.echo(json.dumps(serializable_result, indent=2, ensure_ascii=False))
+
+        if stream:
+            if json_output:
+                click.echo("Error: --stream and --json cannot be used together", err=True)
+                raise click.Abort()
+
+            click.echo(f"Querying (strategy: {strategy}): {question}\n")
+            click.echo("Answer: ", nl=False)
+            for chunk in agentic_rag_service.stream_query(question, strategy=strategy):
+                click.echo(chunk, nl=False)
+            click.echo()  # New line after streaming
         else:
-            if verbose and result["tool_calls"]:
-                click.echo("Tool Calls:")
-                for i, tool_call in enumerate(result["tool_calls"], 1):
-                    click.echo(f"\n  [{i}] Iteration {tool_call['iteration']}")
-                    click.echo(f"      Tool: {tool_call['tool_name']}")
-                    click.echo(f"      Args: {json.dumps(tool_call['tool_args'], indent=8, ensure_ascii=False)}")
-                    if isinstance(tool_call.get('result'), dict) and len(str(tool_call['result'])) < 200:
-                        click.echo(f"      Result: {json.dumps(tool_call['result'], indent=8, ensure_ascii=False)}")
-                    else:
-                        result_preview = str(tool_call.get('result', ''))[:100]
-                        click.echo(f"      Result: {result_preview}...")
-                click.echo()
-            
-            click.echo("Answer:")
-            click.echo(result["answer"])
-            click.echo(f"\nCompleted in {result['iterations']} iteration(s)")
-            
-            if result.get("max_iterations_reached"):
-                click.echo("⚠️  Maximum iterations reached", err=True)
-            
-            if result["tool_calls"]:
-                click.echo(f"Used {len(result['tool_calls'])} tool call(s)")
+            click.echo(f"Querying (strategy: {strategy}): {question}\n")
+
+            # Execute query
+            result = agentic_rag_service.query(question, strategy=strategy)
+
+            if json_output:
+                # Convert to serializable format
+                serializable_result = {
+                    "answer": result["answer"],
+                    "sources": result["sources"],
+                    "tool_calls": result["tool_calls"],
+                    "metadata": result["metadata"],
+                }
+                click.echo(json.dumps(serializable_result, indent=2, ensure_ascii=False))
+            else:
+                # Show tool calls if verbose
+                if verbose and result["tool_calls"]:
+                    click.echo("Tool Calls:")
+                    for i, tool_call in enumerate(result["tool_calls"], 1):
+                        click.echo(f"\n  [{i}] Iteration {tool_call['iteration']}")
+                        click.echo(f"      Tool: {tool_call['tool_name']}")
+                        click.echo(
+                            f"      Args: {json.dumps(tool_call['tool_args'], indent=8, ensure_ascii=False)}"
+                        )
+                        if isinstance(tool_call.get("result"), dict) and len(
+                            str(tool_call["result"])
+                        ) < 200:
+                            click.echo(
+                                f"      Result: {json.dumps(tool_call['result'], indent=8, ensure_ascii=False)}"
+                            )
+                        else:
+                            result_preview = str(tool_call.get("result", ""))[:100]
+                            click.echo(f"      Result: {result_preview}...")
+                    click.echo()
+
+                # Show answer
+                click.echo("Answer:")
+                click.echo(result["answer"])
+
+                # Show sources
+                if result["sources"]:
+                    click.echo(f"\nSources ({len(result['sources'])}):")
+                    for i, source in enumerate(result["sources"], 1):
+                        source_type = source.get("type", "unknown")
+                        if source_type == "note":
+                            click.echo(
+                                f"  {i}. Note: {source.get('title', 'Unknown')} "
+                                f"(ID: {source.get('note_id')})"
+                            )
+                            if source.get("tags"):
+                                click.echo(f"      Tags: {', '.join(source['tags'])}")
+                            if source.get("similarity"):
+                                click.echo(f"      Similarity: {source['similarity']:.3f}")
+                        elif source_type == "document":
+                            click.echo(
+                                f"  {i}. Document: {source.get('title', 'Unknown')} "
+                                f"(ID: {source.get('doc_id')})"
+                            )
+                            if source.get("distance"):
+                                click.echo(f"      Distance: {source['distance']:.3f}")
+                else:
+                    click.echo("\nNo sources found")
+
+                # Show metadata
+                metadata = result["metadata"]
+                click.echo(f"\nCompleted in {metadata['iterations']} iteration(s)")
+                click.echo(f"Strategy: {metadata['strategy']}")
+                click.echo(f"Tool calls: {metadata['tool_call_count']}")
+
+                if metadata.get("max_iterations_reached"):
+                    click.echo("⚠️  Maximum iterations reached", err=True)
 
     except Exception as e:
         click.echo(f"Error: {e}", err=True)
         import traceback
+
         if verbose:
             click.echo(traceback.format_exc(), err=True)
         raise click.Abort()

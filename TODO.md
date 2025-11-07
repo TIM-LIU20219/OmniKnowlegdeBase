@@ -156,18 +156,18 @@
   - [x] 管理多轮对话和工具调用循环
   - [x] 限制最大工具调用次数（防止无限循环，默认max_iterations=5）
 
-### Sprint 2.5.4: 集成到RAG服务
+### Sprint 2.5.4: 集成到RAG服务 ✅
 
-- [ ] **创建新的AgenticRAGService**
-  - [ ] 创建 `backend/app/services/agentic_rag_service.py`
-  - [ ] 替代或扩展现有的RAGService
-  - [ ] 使用Agentic Search进行检索
-  - [ ] 支持流式响应
+- [x] **创建新的AgenticRAGService** ✅
+  - [x] 创建 `backend/app/services/agentic_rag_service.py`
+  - [x] 替代或扩展现有的RAGService（创建独立服务，不替代原有RAGService）
+  - [x] 使用Agentic Search进行检索（通过AgentExecutor）
+  - [x] 支持流式响应（stream_query方法）
 
-- [ ] **更新CLI接口**
-  - [ ] 添加agentic search端点 (`cli rag agentic-query <question>`)
-  - [ ] 支持工具调用结果的展示
-  - [ ] 支持检索策略选择 (`--strategy note-first|pdf-first|hybrid`)
+- [x] **更新CLI接口** ✅
+  - [x] 添加agentic search端点 (`cli rag agentic-query <question>`) - 已存在，已更新使用AgenticRAGService
+  - [x] 支持工具调用结果的展示（--verbose选项）
+  - [x] 支持检索策略选择 (`--strategy note-first|hybrid`)
 
 ### Sprint 2.5.5: 笔记向量化流程
 
