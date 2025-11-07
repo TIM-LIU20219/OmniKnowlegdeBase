@@ -8,7 +8,9 @@ pydantic-settings
 chromadb
 
 # Document processing
-pypdf
+pypdf  # Fallback PDF library
+pymupdf  # PyMuPDF - Best for Chinese text extraction (install as: pip install pymupdf)
+pdfplumber  # Good for Chinese and table extraction (optional, but recommended)
 markdown
 beautifulsoup4
 lxml

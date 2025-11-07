@@ -10,9 +10,10 @@ from urllib.parse import urlparse
 import markdown
 import requests
 from bs4 import BeautifulSoup
-from pypdf import PdfReader
 
 from backend.app.models.metadata import DocumentMetadata, DocType, SourceType
+from backend.app.utils.pdf_extractor import PDFExtractor
+from backend.app.utils.text_cleaner import TextCleaner
 
 logger = logging.getLogger(__name__)
 
@@ -87,7 +88,7 @@ class DocumentProcessor:
 
     def process_pdf(self, file_path: Path) -> Tuple[str, DocumentMetadata]:
         """
-        Process PDF file.
+        Process PDF file using best available extraction backend.
 
         Args:
             file_path: Path to PDF file
@@ -96,27 +97,39 @@ class DocumentProcessor:
             Tuple of (processed_text, metadata)
         """
         try:
-            reader = PdfReader(str(file_path))
-
-            # Extract text from all pages
-            text_parts = []
-            for page in reader.pages:
-                text_parts.append(page.extract_text())
-
-            processed_text = "\n\n".join(text_parts)
-
-            # Extract metadata from PDF
-            metadata_dict = reader.metadata if reader.metadata else {}
-            title = (
-                metadata_dict.get("/Title")
-                or metadata_dict.get("Title")
-                or file_path.stem
+            # Use improved PDF extractor with fallback support
+            extractor = PDFExtractor()
+            raw_text, backend_used = extractor.extract_with_fallback(file_path)
+            
+            logger.info(
+                f"Extracted text from PDF using backend: {backend_used} "
+                f"({len(raw_text):,} characters)"
             )
-            author = (
-                metadata_dict.get("/Author")
-                or metadata_dict.get("Author")
-                or None
-            )
+
+            # Clean PDF-extracted text
+            processed_text = TextCleaner.clean_pdf_text(raw_text)
+
+            # Extract metadata from PDF (try multiple backends for metadata)
+            title = file_path.stem
+            author = None
+            
+            try:
+                # Try to get metadata using pypdf (most reliable for metadata)
+                from pypdf import PdfReader
+                reader = PdfReader(str(file_path))
+                metadata_dict = reader.metadata if reader.metadata else {}
+                title = (
+                    metadata_dict.get("/Title")
+                    or metadata_dict.get("Title")
+                    or file_path.stem
+                )
+                author = (
+                    metadata_dict.get("/Author")
+                    or metadata_dict.get("Author")
+                    or None
+                )
+            except Exception as e:
+                logger.warning(f"Could not extract PDF metadata: {e}")
 
             # Create metadata
             doc_id = self._generate_doc_id()
