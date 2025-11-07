@@ -13,8 +13,8 @@ from sentence_transformers import SentenceTransformer
 
 logger = logging.getLogger(__name__)
 
-# Default embedding model
-DEFAULT_MODEL = "all-MiniLM-L6-v2"
+# Default embedding model (中文模型)
+DEFAULT_MODEL = "BAAI/bge-small-zh-v1.5"
 
 
 class EmbeddingService:

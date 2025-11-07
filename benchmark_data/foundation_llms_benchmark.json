@@ -1,0 +1,98 @@
+{
+  "dataset_name": "foundation_llms_benchmark",
+  "description": "Initial benchmark dataset based on Foundation of LLMs textbook (6 chapters)",
+  "questions": [
+    {
+      "question_id": "foundation_llm_001",
+      "question": "什么是语言模型？语言模型的基本原理是什么？",
+      "ground_truth_answer": "语言模型是一种概率模型，用于预测给定上下文的下一个词或字符的概率分布。语言模型的基本原理是通过学习大量文本数据，建立词汇序列的概率分布，从而能够预测和生成文本。",
+      "context_doc_ids": [
+        "a65a82db-6ddc-400d-87a9-7ff662c7234e"
+      ],
+      "metadata": {
+        "category": "factual",
+        "difficulty": "easy",
+        "chapter": "1"
+      }
+    },
+    {
+      "question_id": "foundation_llm_002",
+      "question": "大语言模型的架构有哪些主要类型？",
+      "ground_truth_answer": "大语言模型的主要架构类型包括Transformer架构、GPT系列（生成式预训练模型）、BERT系列（双向编码器表示）、T5（文本到文本转换模型）等。",
+      "context_doc_ids": [
+        "cad6dede-38ce-45d9-8db1-87a1386e1818"
+      ],
+      "metadata": {
+        "category": "factual",
+        "difficulty": "medium",
+        "chapter": "2"
+      }
+    },
+    {
+      "question_id": "foundation_llm_003",
+      "question": "什么是Prompt工程？Prompt工程的主要技术有哪些？",
+      "ground_truth_answer": "Prompt工程是指设计和优化输入提示词（prompt）以引导大语言模型生成期望输出的技术。主要技术包括few-shot learning、chain-of-thought prompting、role prompting等。",
+      "context_doc_ids": [
+        "ee4b02f2-4470-4abe-bab5-5d61d821f8be"
+      ],
+      "metadata": {
+        "category": "factual",
+        "difficulty": "medium",
+        "chapter": "3"
+      }
+    },
+    {
+      "question_id": "foundation_llm_004",
+      "question": "参数高效微调（PEFT）有哪些方法？",
+      "ground_truth_answer": "参数高效微调的主要方法包括LoRA（Low-Rank Adaptation）、Adapter、Prefix Tuning、P-Tuning等，这些方法只训练模型的一小部分参数，从而降低计算成本和存储需求。",
+      "context_doc_ids": [
+        "a99849eb-30cb-4fd8-9d34-eb5f4fce2c54"
+      ],
+      "metadata": {
+        "category": "factual",
+        "difficulty": "medium",
+        "chapter": "4"
+      }
+    },
+    {
+      "question_id": "foundation_llm_005",
+      "question": "什么是模型编辑？模型编辑的主要方法有哪些？",
+      "ground_truth_answer": "模型编辑是指在不重新训练整个模型的情况下，修改模型对特定事实或知识的记忆。主要方法包括直接参数修改、知识注入、记忆更新等。",
+      "context_doc_ids": [
+        "e993cd5f-66d6-42ac-9fa0-2c467f1ccc30"
+      ],
+      "metadata": {
+        "category": "factual",
+        "difficulty": "hard",
+        "chapter": "5"
+      }
+    },
+    {
+      "question_id": "foundation_llm_006",
+      "question": "什么是检索增强生成（RAG）？RAG的工作原理是什么？",
+      "ground_truth_answer": "检索增强生成（RAG）是一种结合信息检索和文本生成的技术。RAG的工作原理是：首先从知识库中检索与查询相关的文档片段，然后将这些片段作为上下文输入到语言模型中，生成基于检索内容的答案。",
+      "context_doc_ids": [
+        "dea17396-b185-4354-a9d6-d87fc902d273"
+      ],
+      "metadata": {
+        "category": "factual",
+        "difficulty": "medium",
+        "chapter": "6"
+      }
+    }
+  ],
+  "metadata": {
+    "version": "1.0",
+    "created_date": "2025-11-07",
+    "total_questions": 6,
+    "source": "Foundation of LLMs textbook",
+    "chapters": [
+      1,
+      2,
+      3,
+      4,
+      5,
+      6
+    ]
+  }
+}

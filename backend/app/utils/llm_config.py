@@ -17,6 +17,9 @@ class LLMProvider(str, Enum):
     """Supported LLM providers."""
 
     DEEPSEEK = "deepseek"
+    ZHIPU = "zhipu"  # 智谱AI
+    BAIDU = "baidu"  # 百度文心
+    ALIBABA = "alibaba"  # 阿里通义
     OPENROUTER = "openrouter"
     OPENAI = "openai"
 
@@ -43,6 +46,25 @@ class LLMConfig:
                 "DEEPSEEK_API_BASE", "https://api.deepseek.com"
             )
             self.model = os.getenv("DEEPSEEK_MODEL", "deepseek-chat")
+        elif self.provider == LLMProvider.ZHIPU:
+            self.api_key = os.getenv("ZHIPU_API_KEY", "")
+            self.api_base = os.getenv(
+                "ZHIPU_API_BASE", "https://open.bigmodel.cn/api/paas/v4"
+            )
+            self.model = os.getenv("ZHIPU_MODEL", "glm-4")
+        elif self.provider == LLMProvider.BAIDU:
+            self.api_key = os.getenv("BAIDU_API_KEY", "")
+            self.api_secret = os.getenv("BAIDU_API_SECRET", "")
+            self.api_base = os.getenv(
+                "BAIDU_API_BASE", "https://aip.baidubce.com/rpc/2.0/ai_custom/v1/wenxinworkshop/chat"
+            )
+            self.model = os.getenv("BAIDU_MODEL", "ernie-bot-turbo")
+        elif self.provider == LLMProvider.ALIBABA:
+            self.api_key = os.getenv("ALIBABA_API_KEY", "")
+            self.api_base = os.getenv(
+                "ALIBABA_API_BASE", "https://dashscope.aliyuncs.com/api/v1/services/aigc/text-generation/generation"
+            )
+            self.model = os.getenv("ALIBABA_MODEL", "qwen-turbo")
         elif self.provider == LLMProvider.OPENROUTER:
             self.api_key = os.getenv("OPENROUTER_API_KEY", "")
             self.api_base = "https://openrouter.ai/api/v1"
@@ -85,6 +107,19 @@ class LLMConfig:
         }
 
         if self.provider == LLMProvider.DEEPSEEK:
+            config["openai_api_key"] = self.api_key
+            config["openai_api_base"] = self.api_base
+        elif self.provider == LLMProvider.ZHIPU:
+            # 智谱AI使用OpenAI兼容格式
+            config["openai_api_key"] = self.api_key
+            config["openai_api_base"] = self.api_base
+        elif self.provider == LLMProvider.BAIDU:
+            # 百度文心需要特殊处理
+            config["baidu_api_key"] = self.api_key
+            config["baidu_api_secret"] = getattr(self, "api_secret", "")
+            config["openai_api_base"] = self.api_base
+        elif self.provider == LLMProvider.ALIBABA:
+            # 阿里通义使用OpenAI兼容格式
             config["openai_api_key"] = self.api_key
             config["openai_api_base"] = self.api_base
         elif self.provider == LLMProvider.OPENROUTER:

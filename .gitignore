@@ -77,6 +77,10 @@ logs/
 *.sqlite3
 chroma_db/
 
+# Documents
+documents/
+notes/
+resources/
 # OS
 Thumbs.db
 .DS_Store

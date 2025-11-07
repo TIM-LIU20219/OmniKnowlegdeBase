@@ -1,0 +1,292 @@
+{
+  "dataset_name": "foundation_llms_benchmark",
+  "total_questions": 6,
+  "summary": {
+    "total_questions": 6,
+    "retrieval_metrics": {
+      "mean_precision": 0.47222222222222227,
+      "mean_recall": 0.8333333333333334,
+      "mean_f1": 0.5499999999999999
+    },
+    "answer_metrics": {
+      "mean_similarity": 0.0,
+      "mean_answer_length": 563.3333333333334
+    },
+    "context_metrics": {
+      "mean_context_length": 3274.1666666666665,
+      "mean_retrieval_count": 4.0
+    }
+  },
+  "detailed_results": [
+    {
+      "question_id": "foundation_llm_001",
+      "question": "什么是语言模型？语言模型的基本原理是什么？",
+      "ground_truth_answer": "语言模型是一种概率模型，用于预测给定上下文的下一个词或字符的概率分布。语言模型的基本原理是通过学习大量文本数据，建立词汇序列的概率分布，从而能够预测和生成文本。",
+      "predicted_answer": "根据提供的上下文，我无法回答这个问题。\n\n提供的文档片段主要是关于自然语言处理、模型微调和特定模型（如Mamba、BERT）的参考文献列表或零散信息，并没有包含对“语言模型”及其基本原理的系统性解释。\n\n如果您需要了解语言模型的定义和基本原理，建议您查阅自然语言处理领域的教科书或综述文章。",
+      "retrieved_doc_ids": [
+        "a65a82db-6ddc-400d-87a9-7ff662c7234e",
+        "a99849eb-30cb-4fd8-9d34-eb5f4fce2c54",
+        "cad6dede-38ce-45d9-8db1-87a1386e1818",
+        "ee4b02f2-4470-4abe-bab5-5d61d821f8be"
+      ],
+      "expected_doc_ids": [
+        "a65a82db-6ddc-400d-87a9-7ff662c7234e"
+      ],
+      "sources": [
+        {
+          "chunk_id": "a65a82db-6ddc-400d-87a9-7ff662c7234e_chunk_20",
+          "title": "a5cefe6ff44147fb95ec3c66f3f20e0c",
+          "doc_id": "a65a82db-6ddc-400d-87a9-7ff662c7234e",
+          "distance": 0.9748319387435913
+        },
+        {
+          "chunk_id": "a99849eb-30cb-4fd8-9d34-eb5f4fce2c54_chunk_15",
+          "title": "4c5153104b1242838872555d5be058dd",
+          "doc_id": "a99849eb-30cb-4fd8-9d34-eb5f4fce2c54",
+          "distance": 0.9757071733474731
+        },
+        {
+          "chunk_id": "cad6dede-38ce-45d9-8db1-87a1386e1818_chunk_39",
+          "title": "b9e749a2f2e1470692b1c05575c4de1c",
+          "doc_id": "cad6dede-38ce-45d9-8db1-87a1386e1818",
+          "distance": 0.9806357622146606
+        },
+        {
+          "chunk_id": "ee4b02f2-4470-4abe-bab5-5d61d821f8be_chunk_44",
+          "title": "9a95202b297745b4babd59954d670180",
+          "doc_id": "ee4b02f2-4470-4abe-bab5-5d61d821f8be",
+          "distance": 0.981069803237915
+        }
+      ],
+      "metadata": {
+        "retrieved_count": 4,
+        "context_length": 3209
+      }
+    },
+    {
+      "question_id": "foundation_llm_002",
+      "question": "大语言模型的架构有哪些主要类型？",
+      "ground_truth_answer": "大语言模型的主要架构类型包括Transformer架构、GPT系列（生成式预训练模型）、BERT系列（双向编码器表示）、T5（文本到文本转换模型）等。",
+      "predicted_answer": "根据提供的上下文，我无法回答这个问题。文档中主要讨论了与检索增强生成（RAG）相关的模型和技术，如RETRO、Atlas、SELF-RAG等，但并没有系统地列出或描述大语言模型的主要架构类型。因此，我不知道答案。\n\n如果您需要了解大语言模型的架构类型，建议您查阅关于Transformer、编码器-解码器结构、仅解码器结构（如GPT系列）以及状态空间模型（如Mamba）等方面的综述文献。",
+      "retrieved_doc_ids": [
+        "dea17396-b185-4354-a9d6-d87fc902d273",
+        "cad6dede-38ce-45d9-8db1-87a1386e1818",
+        "dea17396-b185-4354-a9d6-d87fc902d273",
+        "a99849eb-30cb-4fd8-9d34-eb5f4fce2c54"
+      ],
+      "expected_doc_ids": [
+        "cad6dede-38ce-45d9-8db1-87a1386e1818"
+      ],
+      "sources": [
+        {
+          "chunk_id": "dea17396-b185-4354-a9d6-d87fc902d273_chunk_31",
+          "title": "d24ac17d3c8c42ce9de017bb2164de2b",
+          "doc_id": "dea17396-b185-4354-a9d6-d87fc902d273",
+          "distance": 0.9979501366615295
+        },
+        {
+          "chunk_id": "cad6dede-38ce-45d9-8db1-87a1386e1818_chunk_39",
+          "title": "b9e749a2f2e1470692b1c05575c4de1c",
+          "doc_id": "cad6dede-38ce-45d9-8db1-87a1386e1818",
+          "distance": 1.0187429189682007
+        },
+        {
+          "chunk_id": "dea17396-b185-4354-a9d6-d87fc902d273_chunk_6",
+          "title": "d24ac17d3c8c42ce9de017bb2164de2b",
+          "doc_id": "dea17396-b185-4354-a9d6-d87fc902d273",
+          "distance": 1.0204029083251953
+        },
+        {
+          "chunk_id": "a99849eb-30cb-4fd8-9d34-eb5f4fce2c54_chunk_3",
+          "title": "4c5153104b1242838872555d5be058dd",
+          "doc_id": "a99849eb-30cb-4fd8-9d34-eb5f4fce2c54",
+          "distance": 1.027305006980896
+        }
+      ],
+      "metadata": {
+        "retrieved_count": 4,
+        "context_length": 3276
+      }
+    },
+    {
+      "question_id": "foundation_llm_003",
+      "question": "什么是Prompt工程？Prompt工程的主要技术有哪些？",
+      "ground_truth_answer": "Prompt工程是指设计和优化输入提示词（prompt）以引导大语言模型生成期望输出的技术。主要技术包括few-shot learning、chain-of-thought prompting、role prompting等。",
+      "predicted_answer": "Based on the provided context, I cannot definitively answer the question \"什么是Prompt工程？Prompt工程的主要技术有哪些？\" (What is Prompt Engineering? What are the main techniques of Prompt Engineering?).\n\nThe documents contain text in multiple languages and scripts, including what appears to be Chinese, but the content is fragmented and mixed with other languages and technical notations. While Document 1 discusses specific techniques like \"Prompt-tuning\" and \"Prefix-tuning\" in the context of parameter-efficient fine-tuning (PEFT), the text is not coherent enough to extract a clear, general definition of \"Prompt Engineering\" or a comprehensive list of its main techniques.\n\nTherefore, I don't know the answer based on the given context.\n\n**Answer:** I don't know.",
+      "retrieved_doc_ids": [
+        "a99849eb-30cb-4fd8-9d34-eb5f4fce2c54",
+        "dea17396-b185-4354-a9d6-d87fc902d273",
+        "cad6dede-38ce-45d9-8db1-87a1386e1818",
+        "cad6dede-38ce-45d9-8db1-87a1386e1818"
+      ],
+      "expected_doc_ids": [
+        "ee4b02f2-4470-4abe-bab5-5d61d821f8be"
+      ],
+      "sources": [
+        {
+          "chunk_id": "a99849eb-30cb-4fd8-9d34-eb5f4fce2c54_chunk_3",
+          "title": "4c5153104b1242838872555d5be058dd",
+          "doc_id": "a99849eb-30cb-4fd8-9d34-eb5f4fce2c54",
+          "distance": 1.061888575553894
+        },
+        {
+          "chunk_id": "dea17396-b185-4354-a9d6-d87fc902d273_chunk_10",
+          "title": "d24ac17d3c8c42ce9de017bb2164de2b",
+          "doc_id": "dea17396-b185-4354-a9d6-d87fc902d273",
+          "distance": 1.0786222219467163
+        },
+        {
+          "chunk_id": "cad6dede-38ce-45d9-8db1-87a1386e1818_chunk_34",
+          "title": "b9e749a2f2e1470692b1c05575c4de1c",
+          "doc_id": "cad6dede-38ce-45d9-8db1-87a1386e1818",
+          "distance": 1.0825564861297607
+        },
+        {
+          "chunk_id": "cad6dede-38ce-45d9-8db1-87a1386e1818_chunk_3",
+          "title": "b9e749a2f2e1470692b1c05575c4de1c",
+          "doc_id": "cad6dede-38ce-45d9-8db1-87a1386e1818",
+          "distance": 1.1005951166152954
+        }
+      ],
+      "metadata": {
+        "retrieved_count": 4,
+        "context_length": 3289
+      }
+    },
+    {
+      "question_id": "foundation_llm_004",
+      "question": "参数高效微调（PEFT）有哪些方法？",
+      "ground_truth_answer": "参数高效微调的主要方法包括LoRA（Low-Rank Adaptation）、Adapter、Prefix Tuning、P-Tuning等，这些方法只训练模型的一小部分参数，从而降低计算成本和存储需求。",
+      "predicted_answer": "根据提供的上下文，参数高效微调（PEFT）的方法主要分为三类：\n\n1.  **附加参数方法（Additional Parameters Methods）**\n    *   **Adapter-tuning**：在Transformer的每一层中添加一个小的瓶颈适配器层。\n    *   **Prompt-tuning**：在输入嵌入中添加可训练的“软提示”嵌入。\n    *   **Prefix-tuning**：在Transformer的每一层的注意力机制中添加可训练的前缀向量（Key和Value）。\n    *   **Proxy-tuning**\n\n2.  **参数选择方法（Parameter Selection Methods）**\n    *   **BitFit**：只微调模型中的偏置参数。\n    *   **Child-tuning**\n    *   **FishMask**\n\n3.  **低秩适配方法（Low-rank Adaptation Methods）**\n    *   **LoRA**：使用低秩分解来近似权重更新。\n    *   **AdaLoRA**\n\n这些方法旨在通过仅微调模型的一小部分参数，来高效地使大型语言模型适应下游任务，从而大幅减少计算和存储成本。",
+      "retrieved_doc_ids": [
+        "a99849eb-30cb-4fd8-9d34-eb5f4fce2c54",
+        "a99849eb-30cb-4fd8-9d34-eb5f4fce2c54",
+        "a99849eb-30cb-4fd8-9d34-eb5f4fce2c54",
+        "a99849eb-30cb-4fd8-9d34-eb5f4fce2c54"
+      ],
+      "expected_doc_ids": [
+        "a99849eb-30cb-4fd8-9d34-eb5f4fce2c54"
+      ],
+      "sources": [
+        {
+          "chunk_id": "a99849eb-30cb-4fd8-9d34-eb5f4fce2c54_chunk_1",
+          "title": "4c5153104b1242838872555d5be058dd",
+          "doc_id": "a99849eb-30cb-4fd8-9d34-eb5f4fce2c54",
+          "distance": 0.7542724013328552
+        },
+        {
+          "chunk_id": "a99849eb-30cb-4fd8-9d34-eb5f4fce2c54_chunk_3",
+          "title": "4c5153104b1242838872555d5be058dd",
+          "doc_id": "a99849eb-30cb-4fd8-9d34-eb5f4fce2c54",
+          "distance": 0.921839714050293
+        },
+        {
+          "chunk_id": "a99849eb-30cb-4fd8-9d34-eb5f4fce2c54_chunk_4",
+          "title": "4c5153104b1242838872555d5be058dd",
+          "doc_id": "a99849eb-30cb-4fd8-9d34-eb5f4fce2c54",
+          "distance": 0.9272981882095337
+        },
+        {
+          "chunk_id": "a99849eb-30cb-4fd8-9d34-eb5f4fce2c54_chunk_5",
+          "title": "4c5153104b1242838872555d5be058dd",
+          "doc_id": "a99849eb-30cb-4fd8-9d34-eb5f4fce2c54",
+          "distance": 0.9384918212890625
+        }
+      ],
+      "metadata": {
+        "retrieved_count": 4,
+        "context_length": 3291
+      }
+    },
+    {
+      "question_id": "foundation_llm_005",
+      "question": "什么是模型编辑？模型编辑的主要方法有哪些？",
+      "ground_truth_answer": "模型编辑是指在不重新训练整个模型的情况下，修改模型对特定事实或知识的记忆。主要方法包括直接参数修改、知识注入、记忆更新等。",
+      "predicted_answer": "Based on the provided context, I can answer the question about model editing.\n\n**What is Model Editing?**\nModel editing refers to techniques for modifying the knowledge or behavior of a pre-trained model after its initial training, without the need for full retraining. It is used to update specific facts, correct errors (hallucinations), or adjust the model's outputs based on new information.\n\n**Main Methods of Model Editing:**\nAccording to the context in Document 3, the primary methods of model editing are categorized as follows:\n\n1.  **External Expansion Methods (外部拓展法):** These methods add external components or parameters to the model.\n2.  **Internal Modification Methods (内部修改法):** These methods directly modify the model's existing internal parameters. This category is further divided into:\n    *   **Additional Parameter Methods (附加参数法)**\n    *   **Meta-Learning Methods (元学习法)**\n    *   **Locate-and-Edit Methods (定位编辑法)**\n\nThe provided documents also mention specific techniques that fall under these categories or are related to the concept, such as ROME (for conducting model editing) and methods like \"AdapterFusion\" and \"Proxy-tuning\" which are parameter-efficient fine-tuning (PEFT) techniques used for adapting models, a goal similar to model editing.",
+      "retrieved_doc_ids": [
+        "dea17396-b185-4354-a9d6-d87fc902d273",
+        "a99849eb-30cb-4fd8-9d34-eb5f4fce2c54",
+        "e993cd5f-66d6-42ac-9fa0-2c467f1ccc30",
+        "cad6dede-38ce-45d9-8db1-87a1386e1818"
+      ],
+      "expected_doc_ids": [
+        "e993cd5f-66d6-42ac-9fa0-2c467f1ccc30"
+      ],
+      "sources": [
+        {
+          "chunk_id": "dea17396-b185-4354-a9d6-d87fc902d273_chunk_6",
+          "title": "d24ac17d3c8c42ce9de017bb2164de2b",
+          "doc_id": "dea17396-b185-4354-a9d6-d87fc902d273",
+          "distance": 1.0141559839248657
+        },
+        {
+          "chunk_id": "a99849eb-30cb-4fd8-9d34-eb5f4fce2c54_chunk_6",
+          "title": "4c5153104b1242838872555d5be058dd",
+          "doc_id": "a99849eb-30cb-4fd8-9d34-eb5f4fce2c54",
+          "distance": 1.0145213603973389
+        },
+        {
+          "chunk_id": "e993cd5f-66d6-42ac-9fa0-2c467f1ccc30_chunk_3",
+          "title": "69934c4ac5f34760a1ff1f726c24e6a7",
+          "doc_id": "e993cd5f-66d6-42ac-9fa0-2c467f1ccc30",
+          "distance": 1.0149195194244385
+        },
+        {
+          "chunk_id": "cad6dede-38ce-45d9-8db1-87a1386e1818_chunk_38",
+          "title": "b9e749a2f2e1470692b1c05575c4de1c",
+          "doc_id": "cad6dede-38ce-45d9-8db1-87a1386e1818",
+          "distance": 1.0309977531433105
+        }
+      ],
+      "metadata": {
+        "retrieved_count": 4,
+        "context_length": 3291
+      }
+    },
+    {
+      "question_id": "foundation_llm_006",
+      "question": "什么是检索增强生成（RAG）？RAG的工作原理是什么？",
+      "ground_truth_answer": "检索增强生成（RAG）是一种结合信息检索和文本生成的技术。RAG的工作原理是：首先从知识库中检索与查询相关的文档片段，然后将这些片段作为上下文输入到语言模型中，生成基于检索内容的答案。",
+      "predicted_answer": "根据提供的上下文，检索增强生成（RAG）是一种用于知识密集型自然语言处理（NLP）任务的技术。\n\n**RAG的工作原理**主要包含三个核心组件：\n1.  **检索器（Retriever）**：根据用户查询（Query），从一个外部知识库（Corpus）中检索出相关的文档。\n2.  **生成器（Generator）**：通常是一个大型语言模型（如GPT-4），它接收检索到的相关文档和用户查询，然后生成最终的答案。\n\n其基本工作流程是：用户提出一个问题，检索器从知识库中查找相关信息，然后将这些信息与问题一同提供给生成器，由生成器合成并输出答案。\n\n上下文还提到了RAG的两种主要架构：\n*   **黑盒增强架构**：在这种架构下，只对检索器进行微调，生成器作为黑盒模型使用，不进行微调。\n*   **白盒增强架构**：在这种架构下，会对检索器和生成器进行协同微调。\n\n综上所述，RAG通过结合外部知识检索和语言模型的生成能力，旨在提供更准确、信息更丰富的答案，同时减少模型产生幻觉或依赖过时、错误内部知识的风险。",
+      "retrieved_doc_ids": [
+        "dea17396-b185-4354-a9d6-d87fc902d273",
+        "dea17396-b185-4354-a9d6-d87fc902d273",
+        "dea17396-b185-4354-a9d6-d87fc902d273",
+        "dea17396-b185-4354-a9d6-d87fc902d273"
+      ],
+      "expected_doc_ids": [
+        "dea17396-b185-4354-a9d6-d87fc902d273"
+      ],
+      "sources": [
+        {
+          "chunk_id": "dea17396-b185-4354-a9d6-d87fc902d273_chunk_4",
+          "title": "d24ac17d3c8c42ce9de017bb2164de2b",
+          "doc_id": "dea17396-b185-4354-a9d6-d87fc902d273",
+          "distance": 0.9483011960983276
+        },
+        {
+          "chunk_id": "dea17396-b185-4354-a9d6-d87fc902d273_chunk_3",
+          "title": "d24ac17d3c8c42ce9de017bb2164de2b",
+          "doc_id": "dea17396-b185-4354-a9d6-d87fc902d273",
+          "distance": 0.9857913255691528
+        },
+        {
+          "chunk_id": "dea17396-b185-4354-a9d6-d87fc902d273_chunk_7",
+          "title": "d24ac17d3c8c42ce9de017bb2164de2b",
+          "doc_id": "dea17396-b185-4354-a9d6-d87fc902d273",
+          "distance": 0.9962589740753174
+        },
+        {
+          "chunk_id": "dea17396-b185-4354-a9d6-d87fc902d273_chunk_22",
+          "title": "d24ac17d3c8c42ce9de017bb2164de2b",
+          "doc_id": "dea17396-b185-4354-a9d6-d87fc902d273",
+          "distance": 1.1009083986282349
+        }
+      ],
+      "metadata": {
+        "retrieved_count": 4,
+        "context_length": 3289
+      }
+    }
+  ]
+}
