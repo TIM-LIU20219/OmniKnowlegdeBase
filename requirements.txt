@@ -36,6 +36,8 @@ sentence-transformers
 python-dotenv
 python-multipart
 click
+httpx  # HTTP client for frontend
+pandas  # Data manipulation for Streamlit
 
 # Frontend (Streamlit)
 streamlit
