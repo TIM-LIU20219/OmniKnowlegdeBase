@@ -9,20 +9,20 @@ logger = logging.getLogger(__name__)
 # Base directories - relative to project root
 BASE_DIR = Path(__file__).resolve().parent.parent.parent.parent
 NOTES_DIR = BASE_DIR / "notes"
-DOCUMENTS_DIR = BASE_DIR / "documents"
+RESOURCES_DIR = BASE_DIR / "resources"
 CHROMA_DB_DIR = BASE_DIR / "chroma_db"
 
 
 def ensure_directories():
     """Ensure all required directories exist."""
-    directories = [NOTES_DIR, DOCUMENTS_DIR, CHROMA_DB_DIR]
+    directories = [NOTES_DIR, RESOURCES_DIR, CHROMA_DB_DIR]
 
     for directory in directories:
         directory.mkdir(parents=True, exist_ok=True)
         logger.info(f"Ensured directory exists: {directory}")
 
     # Create .gitkeep files to ensure directories are tracked
-    for directory in [NOTES_DIR, DOCUMENTS_DIR]:
+    for directory in [NOTES_DIR, RESOURCES_DIR]:
         gitkeep = directory / ".gitkeep"
         if not gitkeep.exists():
             gitkeep.touch()
@@ -39,14 +39,14 @@ def get_notes_directory() -> Path:
     return NOTES_DIR
 
 
-def get_documents_directory() -> Path:
+def get_resources_directory() -> Path:
     """
-    Get the documents directory path.
+    Get the resources directory path.
 
     Returns:
-        Path to documents directory
+        Path to resources directory
     """
-    return DOCUMENTS_DIR
+    return RESOURCES_DIR
 
 
 def get_chroma_db_directory() -> Path:
@@ -75,17 +75,17 @@ def list_note_files() -> List[Path]:
 
 def list_document_files() -> List[Path]:
     """
-    List all document files.
+    List all document files from resources directory.
 
     Returns:
         List of document file paths
     """
     documents = []
-    if DOCUMENTS_DIR.exists():
+    if RESOURCES_DIR.exists():
         # Common document extensions
-        extensions = ["*.pdf", "*.md", "*.txt"]
+        extensions = ["*.pdf", "*.md", "*.txt", "*.py", "*.js", "*.ts", "*.java", "*.cpp", "*.c", "*.go", "*.rs", "*.rb", "*.php"]
         for ext in extensions:
-            documents.extend(list(DOCUMENTS_DIR.rglob(ext)))
+            documents.extend(list(RESOURCES_DIR.rglob(ext)))
     logger.debug(f"Found {len(documents)} document files")
     return documents
 

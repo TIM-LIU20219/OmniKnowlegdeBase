@@ -31,7 +31,7 @@ print("\nInitializing...")
 
 from backend.app.services.document_service import DocumentService
 from backend.app.utils.device_utils import get_device_info
-from backend.app.utils.filesystem import DOCUMENTS_DIR, ensure_directories, ensure_file_directory
+from backend.app.utils.filesystem import RESOURCES_DIR, ensure_directories, ensure_file_directory
 from backend.app.utils.logging_config import setup_logging
 
 # Setup logging
@@ -221,7 +221,7 @@ def test_markdown_processing(document_service: DocumentService, content: Optiona
             safe_title = "".join(c if c.isalnum() or c in (' ', '-', '_') else '_' for c in metadata.title)
             safe_title = safe_title[:50].strip()  # Limit length
             filename = f"{metadata.doc_id[:8]}_{safe_title}.md"
-            saved_path = DOCUMENTS_DIR / filename
+            saved_path = RESOURCES_DIR / "uploads" / filename
             ensure_file_directory(saved_path)
             saved_path.write_text(content, encoding='utf-8')
             print(f"   Saved to: {saved_path}")
@@ -283,7 +283,7 @@ def test_url_processing(document_service: DocumentService, url: str = "https://w
             safe_title = "".join(c if c.isalnum() or c in (' ', '-', '_') else '_' for c in metadata.title)
             safe_title = safe_title[:50].strip()  # Limit length
             filename = f"{metadata.doc_id[:8]}_{safe_title}.txt"
-            saved_path = DOCUMENTS_DIR / filename
+            saved_path = RESOURCES_DIR / "uploads" / filename
             ensure_file_directory(saved_path)
             
             # Write content with metadata header

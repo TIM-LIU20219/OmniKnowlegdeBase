@@ -9,7 +9,7 @@ import click
 from backend.app.services.document_service import DocumentService, DuplicateDocumentError
 from backend.app.services.note_vectorization_service import NoteVectorizationService
 from backend.app.services.vector_service import VectorService
-from backend.app.utils.filesystem import DOCUMENTS_DIR, NOTES_DIR
+from backend.app.utils.filesystem import RESOURCES_DIR, NOTES_DIR
 from backend.app.utils.file_hash import get_file_hash_and_metadata
 
 
@@ -50,33 +50,42 @@ def delete_all_collections():
 
 
 def reindex_documents():
-    """Re-index all documents from documents/ directory."""
+    """Re-index all documents from resources/ directory."""
     print("=" * 80)
     print("Step 2: Re-indexing documents")
     print("=" * 80)
     
     doc_service = DocumentService()
-    documents_dir = DOCUMENTS_DIR
+    resources_dir = RESOURCES_DIR
     
-    if not documents_dir.exists():
-        print(f"Documents directory not found: {documents_dir}")
+    if not resources_dir.exists():
+        print(f"Resources directory not found: {resources_dir}")
         return 0, 0, 0
     
     # Generate batch ID for this reindexing session
     batch_id = f"reindex_{uuid4().hex[:8]}"
     print(f"Batch ID: {batch_id}")
-    print(f"Directory: {documents_dir}\n")
+    print(f"Directory: {resources_dir}\n")
     
     imported_count = 0
     skipped_count = 0
     error_count = 0
     
-    # Process PDF files
-    pdf_files = sorted(documents_dir.glob("*.pdf"))
+    # Define file extensions to process
+    pdf_extensions = ["*.pdf"]
+    markdown_extensions = ["*.md"]
+    code_extensions = ["*.py", "*.js", "*.ts", "*.java", "*.cpp", "*.c", "*.go", "*.rs", "*.rb", "*.php"]
+    
+    # Process PDF files recursively
+    pdf_files = []
+    for ext in pdf_extensions:
+        pdf_files.extend(resources_dir.rglob(ext))
+    pdf_files = sorted(set(pdf_files))
+    
     if pdf_files:
         print(f"Found {len(pdf_files)} PDF file(s):")
         for i, pdf_file in enumerate(pdf_files, 1):
-            print(f"\n[{i}/{len(pdf_files)}] Processing PDF: {pdf_file.name}")
+            print(f"\n[{i}/{len(pdf_files)}] Processing PDF: {pdf_file.relative_to(resources_dir)}")
             try:
                 # Calculate file hash first
                 file_info = get_file_hash_and_metadata(pdf_file)
@@ -93,6 +102,7 @@ def reindex_documents():
                 imported_count += 1
                 print(f"  ✓ Successfully indexed: {metadata.title}")
                 print(f"    Doc ID: {metadata.doc_id}")
+                print(f"    Source: {metadata.source}")
                 print(f"    Chunks: {metadata.chunk_total}")
             except DuplicateDocumentError as e:
                 skipped_count += 1
@@ -101,12 +111,17 @@ def reindex_documents():
                 error_count += 1
                 print(f"  ✗ Error: {e}")
     
-    # Process Markdown files
-    md_files = sorted(documents_dir.glob("*.md"))
-    if md_files:
-        print(f"\nFound {len(md_files)} Markdown file(s):")
-        for i, md_file in enumerate(md_files, 1):
-            print(f"\n[{i}/{len(md_files)}] Processing Markdown: {md_file.name}")
+    # Process Markdown and code files recursively
+    md_and_code_files = []
+    for ext in markdown_extensions + code_extensions:
+        md_and_code_files.extend(resources_dir.rglob(ext))
+    md_and_code_files = sorted(set(md_and_code_files))
+    
+    if md_and_code_files:
+        print(f"\nFound {len(md_and_code_files)} Markdown/Code file(s):")
+        for i, md_file in enumerate(md_and_code_files, 1):
+            file_type = "Code" if md_file.suffix.lower() in [ext.replace("*", "") for ext in code_extensions] else "Markdown"
+            print(f"\n[{i}/{len(md_and_code_files)}] Processing {file_type}: {md_file.relative_to(resources_dir)}")
             try:
                 # Calculate file hash first
                 file_info = get_file_hash_and_metadata(md_file)
@@ -124,6 +139,8 @@ def reindex_documents():
                 imported_count += 1
                 print(f"  ✓ Successfully indexed: {metadata.title}")
                 print(f"    Doc ID: {metadata.doc_id}")
+                print(f"    Doc Type: {metadata.doc_type}")
+                print(f"    Source: {metadata.source}")
                 print(f"    Chunks: {metadata.chunk_total}")
             except DuplicateDocumentError as e:
                 skipped_count += 1
@@ -132,8 +149,8 @@ def reindex_documents():
                 error_count += 1
                 print(f"  ✗ Error: {e}")
     
-    if not pdf_files and not md_files:
-        print("No PDF or Markdown files found in documents directory.")
+    if not pdf_files and not md_and_code_files:
+        print("No PDF, Markdown, or code files found in resources directory.")
     
     print("\n" + "-" * 80)
     print("Documents Summary:")

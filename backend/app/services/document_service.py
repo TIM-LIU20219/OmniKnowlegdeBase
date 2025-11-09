@@ -14,7 +14,7 @@ from backend.app.services.embedding_service import EmbeddingService
 from backend.app.services.note_metadata_service import NoteMetadataService
 from backend.app.services.vector_service import VectorService
 from backend.app.utils.file_hash import get_file_hash_and_metadata
-from backend.app.utils.filesystem import BASE_DIR, DOCUMENTS_DIR, NOTES_DIR, ensure_file_directory
+from backend.app.utils.filesystem import BASE_DIR, RESOURCES_DIR, NOTES_DIR, ensure_file_directory
 from backend.app.utils.text_cleaner import TextCleaner
 
 logger = logging.getLogger(__name__)
@@ -91,15 +91,46 @@ class DocumentService:
             logger.warning(f"Error checking duplicate: {e}")
             return None
 
+    def _detect_resource_type(self, file_path: Path) -> Tuple[DocType, SourceType]:
+        """
+        Detect resource type based on file path.
+
+        Args:
+            file_path: File path to analyze
+
+        Returns:
+            Tuple of (DocType, SourceType)
+        """
+        path_str = str(file_path).replace("\\", "/")
+        
+        # Check if it's a note (in resources/notes/ directory)
+        if "resources/notes/" in path_str or path_str.startswith("notes/"):
+            return DocType.NOTE, SourceType.NOTE
+        
+        # Check if it's a code file
+        code_extensions = {'.py', '.js', '.ts', '.java', '.cpp', '.c', '.go', '.rs', '.rb', '.php'}
+        if file_path.suffix.lower() in code_extensions:
+            return DocType.DOCUMENT, SourceType.CODE
+        
+        # Check if it's a PDF
+        if file_path.suffix.lower() == '.pdf':
+            return DocType.DOCUMENT, SourceType.PDF
+        
+        # Check if it's Markdown
+        if file_path.suffix.lower() == '.md':
+            return DocType.DOCUMENT, SourceType.MARKDOWN
+        
+        # Default
+        return DocType.DOCUMENT, SourceType.UNKNOWN
+
     def _should_copy_file(self, file_path: Path) -> bool:
         """
-        Determine if file should be copied to documents folder.
+        Determine if file should be copied to resources/uploads folder.
 
         Strategy:
-        - If file is already in documents folder, keep reference only (no copy)
-        - If file is in resources folder, keep reference only
+        - If file is in resources folder, keep reference only (no copy)
         - If file is in notes folder, keep reference only (notes are managed separately)
-        - If file is uploaded from temp location or other location, copy to documents
+        - If file is uploaded from temp location or other location, copy to resources/uploads
 
         Args:
             file_path: Source file path
@@ -110,22 +141,12 @@ class DocumentService:
         try:
             # Resolve paths to absolute
             file_path_resolved = file_path.resolve()
-            documents_dir = DOCUMENTS_DIR.resolve()
-            resources_dir = BASE_DIR / "resources"
+            resources_dir = RESOURCES_DIR.resolve()
             notes_dir = NOTES_DIR.resolve()
-
-            # Check if file is already in documents folder
-            try:
-                file_path_resolved.relative_to(documents_dir)
-                # File is already in documents, don't copy
-                logger.debug(f"File is already in documents folder, keeping reference: {file_path}")
-                return False
-            except ValueError:
-                pass
 
             # Check if file is in resources folder
             try:
-                file_path_resolved.relative_to(resources_dir.resolve())
+                file_path_resolved.relative_to(resources_dir)
                 # File is in resources, don't copy
                 logger.debug(f"File is in resources folder, keeping reference: {file_path}")
                 return False
@@ -141,8 +162,8 @@ class DocumentService:
             except ValueError:
                 pass
 
-            # File is not in documents/resources/notes, copy it to documents
-            logger.debug(f"File is not in documents/resources/notes folder, will copy: {file_path}")
+            # File is not in resources/notes, copy it to resources/uploads
+            logger.debug(f"File is not in resources/notes folder, will copy: {file_path}")
             return True
         except Exception as e:
             logger.warning(f"Error determining copy strategy: {e}, defaulting to copy")
@@ -212,10 +233,12 @@ class DocumentService:
 
             metadata.import_batch = import_batch
 
-            # Check if this is a note and update metadata accordingly
-            if file_path and self._is_note_path(file_path):
-                metadata.doc_type = DocType.NOTE
-                metadata.source = SourceType.NOTE
+            # Detect resource type and update metadata accordingly
+            if file_path:
+                file_path_obj = Path(file_path)
+                doc_type, source_type = self._detect_resource_type(file_path_obj)
+                metadata.doc_type = doc_type
+                metadata.source = source_type
 
             # Process and store (pass original content for note processing)
             return self._process_and_store(text, metadata, original_content=content)
@@ -417,7 +440,7 @@ class DocumentService:
 
     def _is_note_path(self, file_path: str) -> bool:
         """
-        Check if file path is in notes directory.
+        Check if file path is in notes directory (resources/notes/).
 
         Args:
             file_path: File path to check
@@ -427,11 +450,18 @@ class DocumentService:
         """
         try:
             path = Path(file_path)
+            path_str = str(path).replace("\\", "/")
+            
+            # Check if it's in resources/notes/ directory
+            if "resources/notes/" in path_str:
+                return True
+            
+            # Check if it's in the old notes directory (for backward compatibility)
             if path.is_absolute():
                 return NOTES_DIR in path.parents or path.parent == NOTES_DIR
             else:
                 # Relative path - check if it starts with notes directory structure
-                return not str(path).startswith("..") and not str(path).startswith("/")
+                return path_str.startswith("notes/")
         except Exception:
             return False
 
@@ -490,9 +520,20 @@ class DocumentService:
             # Generate note_id from file_path or doc_id
             if metadata.file_path:
                 file_path_obj = Path(metadata.file_path)
-                # Try to get relative path from notes directory
+                # Try to get relative path from resources/notes directory
                 try:
-                    relative_path = file_path_obj.relative_to(NOTES_DIR)
+                    # Check if it's in resources/notes/
+                    if "resources/notes/" in str(file_path_obj).replace("\\", "/"):
+                        # Extract relative path from resources/notes/
+                        path_str = str(file_path_obj).replace("\\", "/")
+                        if "resources/notes/" in path_str:
+                            relative_path_str = path_str.split("resources/notes/")[-1]
+                            relative_path = Path(relative_path_str)
+                        else:
+                            relative_path = file_path_obj.relative_to(RESOURCES_DIR / "notes")
+                    else:
+                        # Try old notes directory for backward compatibility
+                        relative_path = file_path_obj.relative_to(NOTES_DIR)
                     note_id = str(relative_path).replace("\\", "/").replace(".md", "")
                     # Also update file_path to relative path for consistency
                     file_path_for_db = str(relative_path)
@@ -554,7 +595,7 @@ class DocumentService:
 
     def _save_document_file(self, file_path: Path, extension: str) -> Path:
         """
-        Save uploaded file to documents directory.
+        Save uploaded file to resources/uploads directory.
 
         Args:
             file_path: Source file path
@@ -565,7 +606,8 @@ class DocumentService:
         """
         # Generate unique filename
         filename = f"{uuid4().hex}.{extension}"
-        saved_path = DOCUMENTS_DIR / filename
+        uploads_dir = RESOURCES_DIR / "uploads"
+        saved_path = uploads_dir / filename
 
         # Ensure directory exists
         ensure_file_directory(saved_path)
