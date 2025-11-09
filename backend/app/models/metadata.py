@@ -15,12 +15,31 @@ class DocType(str, Enum):
 
 
 class SourceType(str, Enum):
-    """Source type enumeration."""
+    """Source type enumeration for all material types."""
 
+    # Document types
     PDF = "pdf"
-    URL = "url"
-    NOTE = "note"
     MARKDOWN = "markdown"
+    TEXT = "text"
+    
+    # Web content
+    URL = "url"
+    WEBPAGE = "webpage"
+    
+    # Media types
+    PICTURE = "picture"
+    IMAGE = "image"  # Alias for picture
+    VIDEO = "video"
+    AUDIO = "audio"
+    
+    # Code
+    CODE = "code"
+    
+    # Notes
+    NOTE = "note"
+    
+    # Other
+    UNKNOWN = "unknown"
 
 
 class DocumentMetadata(BaseModel):
@@ -37,7 +56,14 @@ class DocumentMetadata(BaseModel):
         None, description="ISO format update timestamp"
     )
     tags: List[str] = Field(default_factory=list, description="Document tags")
-    source: SourceType = Field(..., description="Document source type")
+    source: SourceType = Field(..., description="Document source type (pdf, url, picture, etc.)")
+    
+    # Links (for notes and documents that reference other materials)
+    links: List[str] = Field(
+        default_factory=list,
+        description="List of linked note/material IDs or names"
+    )
+    
     chunk_index: int = Field(
         default=0, description="Chunk index if document is split into chunks"
     )
@@ -64,6 +90,12 @@ class DocumentMetadata(BaseModel):
     import_batch: Optional[str] = Field(
         None, description="Batch identifier for tracking import groups"
     )
+    
+    # Media-specific metadata
+    mime_type: Optional[str] = Field(None, description="MIME type for media files (e.g., image/png)")
+    width: Optional[int] = Field(None, description="Width in pixels (for images/videos)")
+    height: Optional[int] = Field(None, description="Height in pixels (for images/videos)")
+    duration: Optional[float] = Field(None, description="Duration in seconds (for audio/video)")
 
     class Config:
         """Pydantic config."""
@@ -101,6 +133,9 @@ class DocumentMetadata(BaseModel):
         if self.tags:
             # Convert list to comma-separated string for ChromaDB
             metadata["tags"] = ",".join(self.tags)
+        if self.links:
+            # Convert links list to comma-separated string
+            metadata["links"] = ",".join(self.links)
         if self.chunk_total is not None:
             metadata["chunk_total"] = self.chunk_total
         if self.author:
@@ -119,6 +154,16 @@ class DocumentMetadata(BaseModel):
             metadata["storage_path"] = self.storage_path
         if self.import_batch:
             metadata["import_batch"] = self.import_batch
+        
+        # Media-specific metadata
+        if self.mime_type:
+            metadata["mime_type"] = self.mime_type
+        if self.width is not None:
+            metadata["width"] = self.width
+        if self.height is not None:
+            metadata["height"] = self.height
+        if self.duration is not None:
+            metadata["duration"] = self.duration
 
         return metadata
 
@@ -137,6 +182,11 @@ class DocumentMetadata(BaseModel):
         tags = []
         if "tags" in metadata and metadata["tags"]:
             tags = metadata["tags"].split(",") if isinstance(metadata["tags"], str) else metadata["tags"]
+        
+        # Parse links from comma-separated string
+        links = []
+        if "links" in metadata and metadata["links"]:
+            links = metadata["links"].split(",") if isinstance(metadata["links"], str) else metadata["links"]
 
         return cls(
             doc_id=metadata["doc_id"],
@@ -146,7 +196,8 @@ class DocumentMetadata(BaseModel):
             created_at=metadata["created_at"],
             updated_at=metadata.get("updated_at"),
             tags=tags,
-            source=SourceType(metadata["source"]),
+            links=links,
+            source=SourceType(metadata.get("source", "unknown")),
             chunk_index=metadata.get("chunk_index", 0),
             chunk_total=metadata.get("chunk_total"),
             author=metadata.get("author"),
@@ -157,6 +208,10 @@ class DocumentMetadata(BaseModel):
             file_mtime=metadata.get("file_mtime"),
             storage_path=metadata.get("storage_path"),
             import_batch=metadata.get("import_batch"),
+            mime_type=metadata.get("mime_type"),
+            width=metadata.get("width"),
+            height=metadata.get("height"),
+            duration=metadata.get("duration"),
         )
 
 

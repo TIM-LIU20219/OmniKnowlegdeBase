@@ -96,9 +96,10 @@ class DocumentService:
         Determine if file should be copied to documents folder.
 
         Strategy:
+        - If file is already in documents folder, keep reference only (no copy)
         - If file is in resources folder, keep reference only
         - If file is in notes folder, keep reference only (notes are managed separately)
-        - If file is uploaded (temp location), copy to documents
+        - If file is uploaded from temp location or other location, copy to documents
 
         Args:
             file_path: Source file path
@@ -109,8 +110,18 @@ class DocumentService:
         try:
             # Resolve paths to absolute
             file_path_resolved = file_path.resolve()
+            documents_dir = DOCUMENTS_DIR.resolve()
             resources_dir = BASE_DIR / "resources"
             notes_dir = NOTES_DIR.resolve()
+
+            # Check if file is already in documents folder
+            try:
+                file_path_resolved.relative_to(documents_dir)
+                # File is already in documents, don't copy
+                logger.debug(f"File is already in documents folder, keeping reference: {file_path}")
+                return False
+            except ValueError:
+                pass
 
             # Check if file is in resources folder
             try:
@@ -130,8 +141,8 @@ class DocumentService:
             except ValueError:
                 pass
 
-            # File is not in resources or notes, copy it
-            logger.debug(f"File is not in resources/notes folder, will copy: {file_path}")
+            # File is not in documents/resources/notes, copy it to documents
+            logger.debug(f"File is not in documents/resources/notes folder, will copy: {file_path}")
             return True
         except Exception as e:
             logger.warning(f"Error determining copy strategy: {e}, defaulting to copy")
@@ -472,6 +483,9 @@ class DocumentService:
 
             # Extract Obsidian-style links [[note-name]]
             links = self._extract_obsidian_links(original_content)
+            
+            # Store links in DocumentMetadata so they're saved to ChromaDB
+            metadata.links = links
 
             # Generate note_id from file_path or doc_id
             if metadata.file_path:
@@ -588,6 +602,36 @@ class DocumentService:
         except Exception as e:
             logger.error(f"Error deleting document '{doc_id}': {e}")
             raise
+
+    def delete_document_by_hash(self, file_hash: str) -> bool:
+        """
+        Delete document and all its chunks by file hash.
+
+        Args:
+            file_hash: SHA256 hash of file content
+
+        Returns:
+            True if document was found and deleted, False otherwise
+        """
+        try:
+            collection_name = self.vector_service.collection_names["documents"]
+            collection = self.vector_service.get_or_create_collection(collection_name)
+
+            # Query all chunks for this file hash
+            results = collection.get(where={"file_hash": file_hash})
+
+            if results["ids"]:
+                # Delete all chunks
+                collection.delete(ids=results["ids"])
+                logger.info(f"Deleted {len(results['ids'])} chunks for file hash: {file_hash[:8]}...")
+                return True
+            else:
+                logger.debug(f"No chunks found for file hash: {file_hash[:8]}...")
+                return False
+
+        except Exception as e:
+            logger.warning(f"Error deleting document by hash '{file_hash[:8]}...': {e}")
+            return False
 
     def get_document_chunks(self, doc_id: str) -> List[Tuple[str, dict]]:
         """

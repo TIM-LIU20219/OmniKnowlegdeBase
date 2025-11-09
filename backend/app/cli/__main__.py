@@ -27,9 +27,10 @@ def cli():
 
 def _register_commands():
     """Lazy register command groups to avoid slow imports at startup."""
-    from backend.app.cli.commands import document, note, rag, vector
+    from backend.app.cli.commands import document, index, note, rag, vector
 
     cli.add_command(document.document_group)
+    cli.add_command(index.index_group)
     cli.add_command(note.note_group)
     cli.add_command(rag.rag_group)
     cli.add_command(vector.vector_group)

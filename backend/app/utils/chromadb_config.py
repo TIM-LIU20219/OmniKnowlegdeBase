@@ -9,6 +9,8 @@ import chromadb
 from chromadb.config import Settings
 from dotenv import load_dotenv
 
+from backend.app.utils.filesystem import BASE_DIR
+
 logger = logging.getLogger(__name__)
 
 # Load environment variables
@@ -28,12 +30,27 @@ class ChromaDBConfig:
 
         Args:
             persist_directory: Directory to persist ChromaDB data.
-                              If None, uses CHROMA_DB_DIR env var or default "chroma_db"
+                              If None, uses CHROMA_DB_DIR env var or default to BASE_DIR/chroma_db
             anonymized_telemetry: Whether to anonymize telemetry data
         """
         # Get persist directory from env or use default
         if persist_directory is None:
-            persist_directory = os.getenv("CHROMA_DB_DIR", "chroma_db")
+            env_path = os.getenv("CHROMA_DB_DIR")
+            if env_path:
+                # If env var is set, use it (could be absolute or relative)
+                persist_directory = Path(env_path)
+                if not persist_directory.is_absolute():
+                    # If relative, make it relative to project root
+                    persist_directory = BASE_DIR / persist_directory
+            else:
+                # Default: use absolute path based on project root
+                persist_directory = BASE_DIR / "chroma_db"
+        else:
+            # If provided, convert to Path
+            persist_directory = Path(persist_directory)
+            if not persist_directory.is_absolute():
+                # If relative, make it relative to project root
+                persist_directory = BASE_DIR / persist_directory
 
         self.persist_directory = Path(persist_directory)
         self.persist_directory.mkdir(parents=True, exist_ok=True)
