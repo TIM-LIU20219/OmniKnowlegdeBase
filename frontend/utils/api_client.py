@@ -269,6 +269,105 @@ class APIClient:
             json_data={"query": query, "tag": tag, "limit": limit},
         )
 
+    def generate_note(
+        self,
+        topic: str,
+        mode: str = "ask",
+        file_path: Optional[str] = None,
+        tags: Optional[List[str]] = None,
+        style: Optional[str] = None,
+    ) -> Dict:
+        """
+        Generate a note using LLM.
+        
+        Args:
+            topic: Topic or question for note generation
+            mode: Generation mode - "new" (LLM knowledge) or "ask" (RAG retrieval)
+            file_path: Optional file path for the note
+            tags: Optional tags for the note
+            style: Optional style instructions
+        
+        Returns:
+            Generated note with metadata
+        """
+        # Build query with mode prefix
+        query = f"/{mode} {topic}" if mode in ("new", "ask") else f"/ask {topic}"
+        return self._request(
+            "POST",
+            "/api/notes/generate",
+            json_data={
+                "topic": query,
+                "file_path": file_path,
+                "tags": tags,
+                "style": style,
+            },
+        )
+
+    def enhance_note(
+        self,
+        content: str,
+        file_path: Optional[str] = None,
+        instruction: Optional[str] = None,
+    ) -> Dict:
+        """
+        Enhance an existing note content.
+        
+        Args:
+            content: Existing note content to enhance
+            file_path: Optional file path for the note
+            instruction: Enhancement instructions
+        
+        Returns:
+            Enhanced note with metadata
+        """
+        return self._request(
+            "POST",
+            "/api/notes/enhance",
+            json_data={
+                "content": content,
+                "file_path": file_path,
+                "instruction": instruction,
+            },
+        )
+
+    def generate_and_save_note(
+        self,
+        topic: str,
+        mode: str = "ask",
+        file_path: Optional[str] = None,
+        tags: Optional[List[str]] = None,
+        style: Optional[str] = None,
+    ) -> Dict:
+        """
+        Generate a note and save it immediately.
+        
+        Args:
+            topic: Topic or question for note generation
+            mode: Generation mode - "new" (LLM knowledge) or "ask" (RAG retrieval)
+            file_path: Optional file path for the note
+            tags: Optional tags for the note
+            style: Optional style instructions
+        
+        Returns:
+            Saved note with metadata
+        """
+        # Build query with mode prefix
+        query = f"/{mode} {topic}" if mode in ("new", "ask") else f"/ask {topic}"
+        return self._request(
+            "POST",
+            "/api/notes/generate-and-save",
+            json_data={
+                "topic": query,
+                "file_path": file_path,
+                "tags": tags,
+                "style": style,
+            },
+        )
+
+    def get_note_links(self, file_path: str) -> Dict:
+        """Get links from a note."""
+        return self._request("GET", f"/api/notes/{file_path}/links")
+
     # Vector API methods
     def list_collections(self) -> List[str]:
         """List all collections."""

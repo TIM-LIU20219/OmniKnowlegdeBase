@@ -219,3 +219,35 @@ class SystemStatsResponse(BaseModel):
     total_vectors: int
     collections: List[dict]
 
+
+# Note Generation API Schemas
+class NoteGenerateRequest(BaseModel):
+    """Request schema for note generation."""
+
+    topic: str = Field(..., description="Topic or question for note generation")
+    file_path: Optional[str] = Field(None, description="Optional file path for the note")
+    tags: Optional[List[str]] = Field(None, description="Optional tags for the note")
+    style: Optional[str] = Field(None, description="Optional style instructions")
+
+
+class NoteEnhanceRequest(BaseModel):
+    """Request schema for note enhancement."""
+
+    content: str = Field(..., description="Existing note content to enhance")
+    file_path: Optional[str] = Field(None, description="Optional file path for the note")
+    instruction: Optional[str] = Field(None, description="Enhancement instructions")
+
+
+class NoteGenerationResponse(BaseModel):
+    """Response schema for note generation."""
+
+    mode: str = Field(..., description="Generation mode: /new or /ask")
+    title: str = Field(..., description="Generated note title")
+    content: str = Field(..., description="Generated note content")
+    suggestions: str = Field(..., description="Similarity suggestions (as comments)")
+    similar_notes: List[dict] = Field(default_factory=list, description="List of similar notes")
+    added_links: List[str] = Field(default_factory=list, description="List of added links")
+    sources: Optional[List[dict]] = Field(None, description="RAG retrieval sources (for /ask mode)")
+    rag_context: Optional[str] = Field(None, description="RAG context summary (for /ask mode)")
+    file_path: Optional[str] = Field(None, description="File path if provided")
+    tags: Optional[List[str]] = Field(None, description="Tags if provided")

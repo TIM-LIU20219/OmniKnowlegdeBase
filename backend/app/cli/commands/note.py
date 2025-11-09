@@ -9,6 +9,7 @@ import click
 from backend.app.services.note_file_service import NoteFileService
 from backend.app.services.note_metadata_service import NoteMetadataService
 from backend.app.services.note_vectorization_service import NoteVectorizationService
+from backend.app.services.workflow_orchestrator import WorkflowOrchestrator
 
 
 @click.group(name="note")
@@ -381,5 +382,165 @@ def search_notes(query, limit, tag, json_output):
 
     except Exception as e:
         click.echo(f"Error: {e}", err=True)
+        raise click.Abort()
+
+
+@note_group.command(name="generate")
+@click.argument("topic", type=str)
+@click.option("--mode", type=click.Choice(["new", "ask"], case_sensitive=False), default="ask",
+              help="Generation mode: 'new' uses LLM knowledge, 'ask' uses RAG retrieval (default: ask)")
+@click.option("--file-path", help="File path for the generated note (optional)")
+@click.option("--tags", help="Comma-separated tags")
+@click.option("--style", help="Style instructions for generation")
+@click.option("--save", is_flag=True, help="Save the generated note immediately")
+@click.option("--json", "json_output", is_flag=True, help="Output as JSON")
+def generate_note(topic, mode, file_path, tags, style, save, json_output):
+    """
+    Generate a note using LLM.
+    
+    Modes:
+    - new: Generate using LLM's own knowledge (no RAG retrieval)
+    - ask: Generate using RAG retrieval first (default)
+    
+    Examples:
+    \b
+        # Generate using RAG (default)
+        note generate "什么是RAG？"
+        
+        # Generate using LLM knowledge only
+        note generate "Python基础语法" --mode new
+        
+        # Generate and save immediately
+        note generate "机器学习基础" --mode ask --save --tags "AI,ML"
+    """
+    orchestrator = WorkflowOrchestrator()
+    note_service = NoteFileService()
+    
+    # Build query with mode prefix
+    mode_prefix = "/new" if mode.lower() == "new" else "/ask"
+    query = f"{mode_prefix} {topic}"
+    
+    tag_list = [t.strip() for t in tags.split(",")] if tags else None
+    
+    try:
+        click.echo(f"Generating note in '{mode}' mode...")
+        result = orchestrator.execute(
+            query=query,
+            file_path=file_path,
+            tags=tag_list,
+            style=style,
+        )
+        
+        if json_output:
+            click.echo(json.dumps(result, indent=2, default=str, ensure_ascii=False))
+        else:
+            # Display result
+            click.echo(f"\n✓ Note generated successfully!")
+            click.echo(f"Mode: {result.get('mode', 'unknown')}")
+            click.echo(f"Title: {result.get('title', 'N/A')}")
+            click.echo(f"Content length: {len(result.get('content', ''))} characters")
+            
+            if result.get('suggestions'):
+                click.echo(f"\nSimilarity suggestions:")
+                click.echo("-" * 60)
+                click.echo(result['suggestions'])
+            
+            if result.get('similar_notes'):
+                click.echo(f"\nSimilar notes found: {len(result['similar_notes'])}")
+                for i, note in enumerate(result['similar_notes'][:3], 1):
+                    click.echo(f"  {i}. {note.get('title', 'Unknown')}")
+            
+            if result.get('added_links'):
+                click.echo(f"\nLinks added: {len(result['added_links'])}")
+                for link in result['added_links'][:5]:
+                    click.echo(f"  - [[{link}]]")
+            
+            if result.get('sources'):
+                click.echo(f"\nRAG sources: {len(result['sources'])}")
+                for i, source in enumerate(result['sources'][:3], 1):
+                    click.echo(f"  {i}. {source.get('title', 'Unknown')} ({source.get('type', 'unknown')})")
+            
+            # Show content preview
+            content = result.get('content', '')
+            if content:
+                click.echo(f"\nContent preview:")
+                click.echo("-" * 60)
+                preview = content[:500] + "..." if len(content) > 500 else content
+                click.echo(preview)
+        
+        # Save if requested
+        if save:
+            full_content = result.get('content', '')
+            if result.get('suggestions'):
+                full_content = f"{result['suggestions']}\n\n{full_content}"
+            
+            save_path = result.get('file_path') or file_path
+            if not save_path:
+                # Generate file path from title
+                title = result.get('title', 'Untitled')
+                safe_title = "".join(c if c.isalnum() or c in (" ", "-", "_") else "_" for c in title)
+                save_path = f"{safe_title.replace(' ', '_')}.md"
+            
+            note_path = note_service.create_note(
+                title=result.get('title', 'Untitled'),
+                content=full_content,
+                file_path=save_path,
+                tags=result.get('tags') or tag_list,
+            )
+            click.echo(f"\n✓ Note saved: {note_path}")
+        
+    except Exception as e:
+        click.echo(f"Error: {e}", err=True)
+        import traceback
+        if json_output:
+            click.echo(json.dumps({"error": str(e)}, indent=2))
+        raise click.Abort()
+
+
+@note_group.command(name="enhance")
+@click.argument("content", type=str)
+@click.option("--file-path", help="File path for the enhanced note (optional)")
+@click.option("--instruction", help="Enhancement instructions")
+@click.option("--json", "json_output", is_flag=True, help="Output as JSON")
+def enhance_note(content, file_path, instruction, json_output):
+    """
+    Enhance an existing note content.
+    
+    Note: This feature is not yet fully implemented.
+    
+    Example:
+        note enhance "现有笔记内容..." --instruction "添加更多细节"
+    """
+    orchestrator = WorkflowOrchestrator()
+    
+    try:
+        click.echo("Enhancing note...")
+        query = f"/enhance {content}"
+        result = orchestrator.execute(
+            query=query,
+            file_path=file_path,
+            instruction=instruction,
+        )
+        
+        if json_output:
+            click.echo(json.dumps(result, indent=2, default=str, ensure_ascii=False))
+        else:
+            if result.get('error'):
+                click.echo(f"⚠ {result['error']}")
+            else:
+                click.echo(f"\n✓ Note enhanced!")
+                click.echo(f"Title: {result.get('title', 'N/A')}")
+                click.echo(f"Content length: {len(result.get('content', ''))} characters")
+                
+                if result.get('content'):
+                    click.echo(f"\nEnhanced content:")
+                    click.echo("-" * 60)
+                    preview = result['content'][:500] + "..." if len(result['content']) > 500 else result['content']
+                    click.echo(preview)
+        
+    except Exception as e:
+        click.echo(f"Error: {e}", err=True)
+        if json_output:
+            click.echo(json.dumps({"error": str(e)}, indent=2))
         raise click.Abort()
 

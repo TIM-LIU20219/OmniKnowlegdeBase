@@ -18,31 +18,139 @@ st.title("📝 Notes Management")
 
 client = get_client()
 
-# Sidebar for note creation
+# Sidebar for note creation and generation
 with st.sidebar:
-    st.header("Create Note")
+    tab_create, tab_generate = st.tabs(["✏️ Create", "🤖 Generate"])
     
-    note_title = st.text_input("Title")
-    note_content = st.text_area("Content", height=200)
-    note_file_path = st.text_input("File path (optional)")
-    note_tags = st.text_input("Tags (comma-separated)")
+    with tab_create:
+        st.header("Create Note")
+        
+        note_title = st.text_input("Title")
+        note_content = st.text_area("Content", height=200)
+        note_file_path = st.text_input("File path (optional)")
+        note_tags = st.text_input("Tags (comma-separated)")
+        
+        if st.button("Create Note", type="primary"):
+            if note_title and note_content:
+                try:
+                    tags_list = [t.strip() for t in note_tags.split(",")] if note_tags else None
+                    result = client.create_note(
+                        title=note_title,
+                        content=note_content,
+                        file_path=note_file_path if note_file_path else None,
+                        tags=tags_list,
+                    )
+                    st.success(f"✓ Note created: {result['file_path']}")
+                    st.rerun()
+                except Exception as e:
+                    st.error(f"Error creating note: {e}")
+            else:
+                st.warning("Please provide title and content")
     
-    if st.button("Create Note", type="primary"):
-        if note_title and note_content:
-            try:
-                tags_list = [t.strip() for t in note_tags.split(",")] if note_tags else None
-                result = client.create_note(
-                    title=note_title,
-                    content=note_content,
-                    file_path=note_file_path if note_file_path else None,
-                    tags=tags_list,
-                )
-                st.success(f"✓ Note created: {result['file_path']}")
-                st.rerun()
-            except Exception as e:
-                st.error(f"Error creating note: {e}")
-        else:
-            st.warning("Please provide title and content")
+    with tab_generate:
+        st.header("Generate Note")
+        
+        gen_mode = st.radio(
+            "Generation Mode",
+            ["ask", "new"],
+            help="'ask' uses RAG retrieval, 'new' uses LLM knowledge only",
+            horizontal=True
+        )
+        
+        gen_topic = st.text_area("Topic/Question", height=100, help="Enter the topic or question for note generation")
+        gen_file_path = st.text_input("File path (optional)", key="gen_file_path")
+        gen_tags = st.text_input("Tags (comma-separated)", key="gen_tags")
+        gen_style = st.text_input("Style instructions (optional)", key="gen_style")
+        
+        col1, col2 = st.columns(2)
+        with col1:
+            generate_btn = st.button("Generate", type="primary", use_container_width=True)
+        with col2:
+            generate_save_btn = st.button("Generate & Save", use_container_width=True)
+        
+        if generate_btn or generate_save_btn:
+            if gen_topic:
+                try:
+                    with st.spinner("Generating note..."):
+                        tags_list = [t.strip() for t in gen_tags.split(",")] if gen_tags else None
+                        
+                        if generate_save_btn:
+                            result = client.generate_and_save_note(
+                                topic=gen_topic,
+                                mode=gen_mode,
+                                file_path=gen_file_path if gen_file_path else None,
+                                tags=tags_list,
+                                style=gen_style if gen_style else None,
+                            )
+                            st.success(f"✓ Note generated and saved: {result['file_path']}")
+                            st.rerun()
+                        else:
+                            result = client.generate_note(
+                                topic=gen_topic,
+                                mode=gen_mode,
+                                file_path=gen_file_path if gen_file_path else None,
+                                tags=tags_list,
+                                style=gen_style if gen_style else None,
+                            )
+                            
+                            # Store result in session state for display
+                            st.session_state['generated_note'] = result
+                            st.success("✓ Note generated successfully!")
+                            
+                            # Show preview
+                            st.subheader("Generated Note Preview")
+                            st.write(f"**Title:** {result.get('title', 'N/A')}")
+                            st.write(f"**Mode:** {result.get('mode', 'unknown')}")
+                            
+                            if result.get('suggestions'):
+                                with st.expander("📋 Similarity Suggestions"):
+                                    st.markdown(result['suggestions'])
+                            
+                            if result.get('similar_notes'):
+                                st.write(f"**Similar notes found:** {len(result['similar_notes'])}")
+                                for note in result['similar_notes'][:3]:
+                                    st.write(f"- {note.get('title', 'Unknown')}")
+                            
+                            if result.get('added_links'):
+                                st.write(f"**Links added:** {len(result['added_links'])}")
+                                for link in result['added_links'][:5]:
+                                    st.write(f"- [[{link}]]")
+                            
+                            if result.get('sources'):
+                                st.write(f"**RAG sources:** {len(result['sources'])}")
+                                for source in result['sources'][:3]:
+                                    st.write(f"- {source.get('title', 'Unknown')} ({source.get('type', 'unknown')})")
+                            
+                            with st.expander("📄 Generated Content"):
+                                st.markdown(result.get('content', ''))
+                            
+                            # Option to save
+                            if st.button("Save Generated Note", type="primary"):
+                                try:
+                                    full_content = result.get('content', '')
+                                    if result.get('suggestions'):
+                                        full_content = f"{result['suggestions']}\n\n{full_content}"
+                                    
+                                    save_path = result.get('file_path') or gen_file_path
+                                    if not save_path:
+                                        title = result.get('title', 'Untitled')
+                                        safe_title = "".join(c if c.isalnum() or c in (" ", "-", "_") else "_" for c in title)
+                                        save_path = f"{safe_title.replace(' ', '_')}.md"
+                                    
+                                    saved = client.create_note(
+                                        title=result.get('title', 'Untitled'),
+                                        content=full_content,
+                                        file_path=save_path,
+                                        tags=result.get('tags') or tags_list,
+                                    )
+                                    st.success(f"✓ Note saved: {saved['file_path']}")
+                                    st.rerun()
+                                except Exception as e:
+                                    st.error(f"Error saving note: {e}")
+                except Exception as e:
+                    st.error(f"Error generating note: {e}")
+            else:
+                st.warning("Please provide a topic or question")
 
 # Main content
 tab1, tab2, tab3 = st.tabs(["📋 Note List", "🔍 Search", "🔗 Links"])

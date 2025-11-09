@@ -7,6 +7,9 @@ from fastapi import APIRouter, HTTPException
 
 from backend.app.api.schemas import (
     NoteCreateRequest,
+    NoteEnhanceRequest,
+    NoteGenerateRequest,
+    NoteGenerationResponse,
     NoteLinkResponse,
     NoteResponse,
     NoteSearchRequest,
@@ -15,6 +18,7 @@ from backend.app.api.schemas import (
 from backend.app.services.note_file_service import NoteFileService
 from backend.app.services.note_metadata_service import NoteMetadataService
 from backend.app.services.note_vectorization_service import NoteVectorizationService
+from backend.app.services.workflow_orchestrator import WorkflowOrchestrator
 
 logger = logging.getLogger(__name__)
 
@@ -266,5 +270,112 @@ async def get_backlinks(note_id: str):
         ]
     except Exception as e:
         logger.error(f"Error getting backlinks: {e}")
+        raise HTTPException(status_code=500, detail=str(e))
+
+
+@router.post("/generate", response_model=NoteGenerationResponse)
+async def generate_note(request: NoteGenerateRequest):
+    """
+    Generate a note using LLM.
+    
+    Supports two modes via topic prefix:
+    - /new <topic>: Generate using LLM's own knowledge
+    - /ask <question>: Generate using RAG retrieval first
+    """
+    orchestrator = WorkflowOrchestrator()
+
+    try:
+        # Build query with mode prefix if not present
+        query = request.topic
+        if not query.startswith(("/new", "/ask")):
+            # Default to /ask mode if no prefix
+            query = f"/ask {query}"
+
+        result = orchestrator.execute(
+            query=query,
+            file_path=request.file_path,
+            tags=request.tags,
+            style=request.style,
+        )
+
+        return NoteGenerationResponse(**result)
+    except Exception as e:
+        logger.error(f"Error generating note: {e}")
+        raise HTTPException(status_code=500, detail=str(e))
+
+
+@router.post("/enhance", response_model=NoteGenerationResponse)
+async def enhance_note(request: NoteEnhanceRequest):
+    """
+    Enhance an existing note.
+    
+    Note: /enhance mode is not yet fully implemented.
+    """
+    orchestrator = WorkflowOrchestrator()
+
+    try:
+        query = f"/enhance {request.content}"
+        result = orchestrator.execute(
+            query=query,
+            file_path=request.file_path,
+            instruction=request.instruction,
+        )
+
+        return NoteGenerationResponse(**result)
+    except Exception as e:
+        logger.error(f"Error enhancing note: {e}")
+        raise HTTPException(status_code=500, detail=str(e))
+
+
+@router.post("/generate-and-save", response_model=NoteResponse)
+async def generate_and_save_note(request: NoteGenerateRequest):
+    """
+    Generate a note and save it immediately.
+    
+    This endpoint generates a note and saves it to the file system.
+    """
+    orchestrator = WorkflowOrchestrator()
+    note_service = NoteFileService()
+
+    try:
+        # Build query with mode prefix if not present
+        query = request.topic
+        if not query.startswith(("/new", "/ask")):
+            query = f"/ask {query}"
+
+        # Generate note
+        result = orchestrator.execute(
+            query=query,
+            file_path=request.file_path,
+            tags=request.tags,
+            style=request.style,
+        )
+
+        # Combine content and suggestions
+        full_content = result["content"]
+        if result.get("suggestions"):
+            full_content = f"{result['suggestions']}\n\n{full_content}"
+
+        # Save note
+        file_path = result.get("file_path") or request.file_path
+        if not file_path:
+            # Generate file path from title
+            title = result["title"]
+            safe_title = "".join(c if c.isalnum() or c in (" ", "-", "_") else "_" for c in title)
+            file_path = f"{safe_title.replace(' ', '_')}.md"
+
+        note_path = note_service.create_note(
+            title=result["title"],
+            content=full_content,
+            file_path=file_path,
+            tags=result.get("tags") or request.tags,
+        )
+
+        # Read back the note
+        title, frontmatter, content = note_service.read_note(note_path)
+        return NoteResponse.from_note(title, note_path, frontmatter, content)
+
+    except Exception as e:
+        logger.error(f"Error generating and saving note: {e}")
         raise HTTPException(status_code=500, detail=str(e))
 
