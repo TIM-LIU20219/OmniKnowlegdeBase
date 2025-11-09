@@ -7,6 +7,7 @@ sys.path.insert(0, str(project_root))
 
 from backend.app.services.vector_service import VectorService
 from backend.app.services.embedding_service import EmbeddingService
+from backend.app.utils.embedding_config import embedding_config
 from backend.app.utils.logging_config import setup_logging
 
 setup_logging(log_level="INFO")
@@ -20,9 +21,10 @@ def check_embedding_dimensions():
     vs = VectorService()
     es = EmbeddingService()
     
-    # Get current model dimension
+    # Get current model dimension from unified config
     current_dim = es.get_embedding_dimension()
-    print(f"\nCurrent Embedding Model: {es.model_name}")
+    print(f"\nCurrent Embedding Config: {embedding_config}")
+    print(f"Current Embedding Model: {es.model_name}")
     print(f"Current Model Dimension: {current_dim}")
     
     # Check all collections
@@ -56,9 +58,18 @@ def check_embedding_dimensions():
         print("  2. Re-index all documents with the current model")
         print("  3. Use a different collection name for new documents")
         print("\nCommon embedding models and dimensions:")
-        print("  - all-MiniLM-L6-v2: 384 dimensions")
-        print("  - BAAI/bge-small-zh-v1.5: 512 dimensions")
-        print("  - BAAI/bge-base-zh-v1.5: 768 dimensions")
+        print("  - all-MiniLM-L6-v2: 384 dimensions (English)")
+        print("  - BAAI/bge-small-zh-v1.5: 512 dimensions (Chinese, lightweight)")
+        print("  - BAAI/bge-base-zh-v1.5: 768 dimensions (Chinese, default)")
+        print("  - BAAI/bge-large-zh-v1.5: 1024 dimensions (Chinese, best performance)")
+        print("  - BAAI/bge-m3: 1024 dimensions (Multilingual, 100+ languages)")
+        print("  - intfloat/multilingual-e5-base: 768 dimensions (Multilingual)")
+        print("  - intfloat/multilingual-e5-large: 1024 dimensions (Multilingual)")
+        print("  - microsoft/codebert-base: 768 dimensions (Code-specific)")
+        print("  - Salesforce/codet5-base: 768 dimensions (Code-specific)")
+        print("  - microsoft/unilm-base-cased: 768 dimensions (Text + Code)")
+        print("\nNote: All embedding models are now managed through unified config")
+        print("      (backend/app/utils/embedding_config.py) to prevent dimension mismatches.")
     
     print("=" * 80)
 

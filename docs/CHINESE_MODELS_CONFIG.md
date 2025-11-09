@@ -41,21 +41,47 @@ LLM_TIMEOUT=60
 
 ### Embedding 模型配置
 
-**⚠️ 重要提示：索引和查询必须使用相同的embedding模型！**
+**⚠️ 重要提示：**
 
-ChromaDB集合会根据第一个文档的embedding维度锁定集合维度。如果后续使用不同维度的模型查询，会导致错误。
+1. **`EMBEDDING_MODEL` 是必需配置项**，必须在 `.env` 文件中设置！
+2. 索引和查询必须使用相同的embedding模型！
+3. ChromaDB集合会根据第一个文档的embedding维度锁定集合维度。如果后续使用不同维度的模型查询，会导致错误。
+
+**如果没有设置 `EMBEDDING_MODEL`，程序将无法启动并显示错误提示。**
 
 ```bash
 # 选择Embedding提供商：local, zhipu, baidu, alibaba, openai
 EMBEDDING_PROVIDER=local
 
-# 本地模型配置（推荐使用中文模型）
-# ⚠️ 确保索引和查询使用相同的模型！
-EMBEDDING_MODEL=BAAI/bge-small-zh-v1.5  # 512 dimensions
-# 或者使用其他模型：
+# 本地模型配置（⚠️ 必需设置）
+# 默认推荐：BAAI/bge-base-zh-v1.5 (768维，中文，性能与资源平衡)
+EMBEDDING_MODEL=BAAI/bge-base-zh-v1.5  # ⚠️ 必须设置此配置项
+# EMBEDDING_MODEL=BAAI/bge-small-zh-v1.5  # 512 dimensions (轻量级)
+# EMBEDDING_MODEL=BAAI/bge-large-zh-v1.5  # 1024 dimensions (最佳性能)
 # EMBEDDING_MODEL=all-MiniLM-L6-v2  # 384 dimensions (英文模型)
-# EMBEDDING_MODEL=BAAI/bge-base-zh-v1.5  # 768 dimensions
+
+# 多语言模型（支持100+语言，适合中英文混合场景）
+# EMBEDDING_MODEL=BAAI/bge-m3  # 1024 dimensions (多语言，推荐)
+# EMBEDDING_MODEL=intfloat/multilingual-e5-base  # 768 dimensions (多语言基础版)
+# EMBEDDING_MODEL=intfloat/multilingual-e5-large  # 1024 dimensions (多语言大型版)
+
+# 代码专用模型（适合代码知识库）
+# EMBEDDING_MODEL=microsoft/codebert-base  # 768 dimensions (代码专用)
+# EMBEDDING_MODEL=Salesforce/codet5-base  # 768 dimensions (代码专用)
+# EMBEDDING_MODEL=microsoft/unilm-base-cased  # 768 dimensions (文本+代码统一模型)
+
 EMBEDDING_DEVICE=auto  # auto, cpu, cuda
+
+# Hugging Face 模型缓存目录配置（可选）
+# 默认情况下，Hugging Face 模型会下载到 C:\Users\<用户名>\.cache\huggingface\hub
+# 如果 C 盘空间不足，可以通过以下方式更改缓存目录：
+# 方式1：在 .env 文件中设置（推荐）
+HF_CACHE_DIR=D:\huggingface_cache\hub
+# 方式2：直接设置 HF_HUB_CACHE（优先级更高）
+# HF_HUB_CACHE=D:\huggingface_cache\hub
+# 方式3：设置 HF_HOME（缓存会在 $HF_HOME/hub 下）
+# HF_HOME=D:\huggingface_cache
+# 注意：如果未设置，默认使用 D:\huggingface_cache\hub
 
 # 智谱AI Embedding配置
 ZHIPU_EMBEDDING_API_BASE=https://open.bigmodel.cn/api/paas/v4/embeddings
@@ -72,10 +98,30 @@ ALIBABA_EMBEDDING_MODEL=text-embedding-v2
 
 **常见embedding模型维度：**
 
+**中文模型：**
+
+- `BAAI/bge-small-zh-v1.5`: 512维（中文，轻量级）
+- `BAAI/bge-base-zh-v1.5`: 768维（中文，**默认推荐**，性能与资源平衡）
+- `BAAI/bge-large-zh-v1.5`: 1024维（中文，最佳性能）
+
+**英文模型：**
+
 - `all-MiniLM-L6-v2`: 384维（英文）
-- `BAAI/bge-small-zh-v1.5`: 512维（中文，推荐）
-- `BAAI/bge-base-zh-v1.5`: 768维（中文）
-- `BAAI/bge-large-zh-v1.5`: 1024维（中文）
+- `BAAI/bge-base-en-v1.5`: 768维（英文）
+
+**多语言模型（✅ 已支持）：**
+
+- `BAAI/bge-m3`: 1024维（支持100+语言，推荐用于中英文混合）
+- `intfloat/multilingual-e5-base`: 768维（多语言基础版）
+- `intfloat/multilingual-e5-large`: 1024维（多语言大型版）
+
+**代码专用模型（✅ 已支持）：**
+
+- `microsoft/codebert-base`: 768维（代码专用，支持多种编程语言）
+- `Salesforce/codet5-base`: 768维（代码专用，代码理解和生成）
+- `microsoft/unilm-base-cased`: 768维（统一模型，同时支持文本和代码）
+
+**注意：** 所有模型配置现在通过全局 `embedding_config` 统一管理，确保维度一致性，避免维度不匹配问题。
 
 **检查embedding维度：**
 
@@ -110,7 +156,7 @@ LLM_PROVIDER=deepseek
 DEEPSEEK_API_KEY=your_key
 
 EMBEDDING_PROVIDER=local
-EMBEDDING_MODEL=BAAI/bge-small-zh-v1.5
+EMBEDDING_MODEL=BAAI/bge-base-zh-v1.5  # 默认模型已升级
 
 RERANK_PROVIDER=local
 RERANK_MODEL=BAAI/bge-reranker-base
@@ -135,9 +181,38 @@ RERANK_MODEL=BAAI/bge-reranker-base
 ## 中文模型推荐
 
 ### Embedding模型
-- **BAAI/bge-small-zh-v1.5**: 轻量级中文embedding模型，速度快
-- **BAAI/bge-base-zh-v1.5**: 标准中文embedding模型，效果更好
-- **BAAI/bge-large-zh-v1.5**: 大型中文embedding模型，效果最佳
+
+**默认模型已升级为 `BAAI/bge-base-zh-v1.5` (768维)**
+
+**中文模型：**
+
+- **BAAI/bge-small-zh-v1.5**: 轻量级中文embedding模型，512维，速度快，适合资源受限环境
+- **BAAI/bge-base-zh-v1.5**: 标准中文embedding模型，768维，**默认推荐**，性能与资源消耗平衡
+- **BAAI/bge-large-zh-v1.5**: 大型中文embedding模型，1024维，效果最佳，需要更多资源
+
+**多语言模型（✅ 新增支持）：**
+
+- **BAAI/bge-m3**: 多语言embedding模型，1024维，支持100+语言，推荐用于中英文混合场景
+- **intfloat/multilingual-e5-base**: 多语言模型基础版，768维
+- **intfloat/multilingual-e5-large**: 多语言模型大型版，1024维
+
+**代码专用模型（✅ 新增支持）：**
+
+- **microsoft/codebert-base**: 代码专用embedding模型，768维，支持多种编程语言
+- **Salesforce/codet5-base**: 代码专用模型，768维，支持代码理解和生成
+- **microsoft/unilm-base-cased**: 统一语言模型，768维，同时支持文本和代码
+
+**统一配置说明：**
+
+- 所有嵌入模型配置通过 `backend/app/utils/embedding_config.py` 统一管理
+- `EmbeddingService` 自动使用全局 `embedding_config`，确保维度一致性
+- 模型维度信息存储在 `MODEL_DIMENSIONS` 映射中，避免硬编码
+
+**语言支持说明：**
+
+- ✅ **新增支持**：多语言模型（bge-m3、multilingual-e5）和代码模型（CodeBERT、CodeT5）
+- 中文模型（如 bge-base-zh-v1.5）可以处理英文和代码，但性能会有所下降
+- 如需处理多语言或代码，请参考语言支持指南选择合适的模型
 
 ### Rerank模型
 - **BAAI/bge-reranker-base**: 标准中文rerank模型

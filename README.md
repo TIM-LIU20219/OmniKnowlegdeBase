@@ -14,6 +14,24 @@ A RAG-focused knowledge base with document processing, Obsidian-like note manage
 
 See [DEVELOPMENT.md](DEVELOPMENT.md) for detailed setup instructions.
 
+### Prerequisites
+
+1. **Create `.env` file**: Copy `.env.example` to `.env` and configure required settings:
+
+   ```bash
+   cp .env.example .env
+   ```
+
+   **⚠️ Important**: You must set `EMBEDDING_MODEL` in `.env` file. The application will not start without it.
+
+   Example:
+
+   ```bash
+   EMBEDDING_MODEL=BAAI/bge-base-zh-v1.5
+   ```
+
+   See [docs/CHINESE_MODELS_CONFIG.md](docs/CHINESE_MODELS_CONFIG.md) for available models and configuration options.
+
 ### Backend + Frontend (Streamlit)
 
 ```bash

@@ -43,7 +43,7 @@ def import_pdfs_from_directory(
 
     if not pdf_files:
         print(f"No PDF files found in {directory}")
-        return imported_docs
+        return imported_docs, skipped_docs, error_docs
 
     print(f"Found {len(pdf_files)} PDF files to import")
     print(f"Batch ID: {batch_id}")
