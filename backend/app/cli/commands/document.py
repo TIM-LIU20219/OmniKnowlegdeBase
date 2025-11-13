@@ -150,7 +150,10 @@ def list_documents(json_output, by_batch):
         }
 
     if not unique_docs:
-        click.echo("No documents found.")
+        if json_output:
+            click.echo(json.dumps([], indent=2))
+        else:
+            click.echo("No documents found.")
         return
 
     if json_output:

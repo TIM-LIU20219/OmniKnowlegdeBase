@@ -24,7 +24,8 @@ def list_collections(json_output):
         collections = vector_service.list_collections()
 
         if json_output:
-            click.echo(json.dumps(collections, indent=2))
+            # Always output JSON array, even if empty
+            click.echo(json.dumps(collections if collections else [], indent=2))
         else:
             if collections:
                 click.echo(f"Found {len(collections)} collections:\n")

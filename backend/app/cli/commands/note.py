@@ -50,7 +50,10 @@ def list_notes(subdirectory, json_output):
         notes = note_service.list_notes(subdirectory=subdirectory)
 
         if not notes:
-            click.echo("No notes found.")
+            if json_output:
+                click.echo(json.dumps([], indent=2))
+            else:
+                click.echo("No notes found.")
             return
 
         if json_output:
