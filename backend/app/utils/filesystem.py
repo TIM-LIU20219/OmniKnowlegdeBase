@@ -8,7 +8,7 @@ logger = logging.getLogger(__name__)
 
 # Base directories - relative to project root
 BASE_DIR = Path(__file__).resolve().parent.parent.parent.parent
-NOTES_DIR = BASE_DIR / "notes"
+NOTES_DIR = BASE_DIR / "resources" / "notes"
 RESOURCES_DIR = BASE_DIR / "resources"
 CHROMA_DB_DIR = BASE_DIR / "chroma_db"
 
